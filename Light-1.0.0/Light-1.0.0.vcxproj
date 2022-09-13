@@ -93,7 +93,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\main_test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\frag.spv" />

@@ -20,17 +20,10 @@ typedef struct ImageDataDescription {
 	ImageAspectFlags imageAspect;
 }ImageDataDescription;
 
-typedef struct ImageSize {
-	//VkExtent2D
-	uint32_t width;
-	uint32_t height;
-	//
-
-	SizeScalingType widthScalingType;
-	SizeScalingType heightScalingType;
-	uint8_t widthScaling;
-	uint8_t heightScaling;
-}ImageSize;
+typedef struct ImageResourceDescription {
+	ImageReference* imageReference;
+	ImageFormat imageFormat;
+}ImageResourceDescription;
 
 typedef struct ImageStackLayout {
 
@@ -39,7 +32,8 @@ typedef struct ImageStackLayout {
 
 	ImageSampleCount sampleCount;
 
-	ImageSize size;
+	uint32_t width;
+	uint32_t height;
 
 	ImageStack* imageStack;
 
@@ -59,170 +53,99 @@ void imagePoolDestroy(ImagePool pool);
 
 #pragma endregion
 
-#pragma region RenderModules
 
 DEFINE_HANDLE(RenderModule);
+DEFINE_HANDLE(ComputeModule);
 
 typedef enum RenderModuleType {
-	RENDER_MODULE_TYPE_GEOMETRY,
-	RENDER_MODULE_TYPE_IMAGE_COMBINE,
+	RENDER_MODULE_TYPE_RENDER,
 	RENDER_MODULE_TYPE_POST_PROCESS,
 }RenderModuleType;
 
-#pragma region RenderModule Input Types
-typedef struct DirectInputImages {
-	ImageStack directInputStack;
-	uint32_t directInputImageCount;
-	ImageReference* directInputImages;
-}DirectInputImages;
-
-typedef struct RenderModuleOutput {
-	ImageStack outputStack;
-	uint32_t outputImageCount;
-	ImageReference* outputImages;
-}RenderModuleOutput;
-
-typedef struct ShaderInputImages {
-	uint32_t shaderInputImageCount;
-	ImageReference* shaderInputImages;
-} ShaderInputImages;
-
-typedef struct ShaderOutputImages {
-	uint32_t shaderOutputImageCount;
-	ImageReference* shaderOutputImages;
-} ShaderOutputImages;
-#pragma endregion
-
-
-typedef struct RenderModuleGeometryRenderInfo {
-	ImageReference depthImage;
-	ImageReference* resolveImages;
-}RenderModuleGeometryRenderInfo;
-
-typedef EMPTY_STRUCT RenderModuleImageCombineInfo;
-typedef EMPTY_STRUCT RenderModulePostProcessInfo;
-
-typedef struct RenderModuleCreateInf {
-	RenderModuleType type;
-	DirectInputImages directInputImages;
-	ShaderInputImages shaderInputImages;
-	ShaderOutputImages shaderOutputImages;
-	RenderModuleOutput output;
-
-	union {
-		RenderModuleGeometryRenderInfo geometry;
-		RenderModuleImageCombineInfo imageCombine;
-		RenderModulePostProcessInfo postProcess;
-	};
-
-} RenderModuleCreateInfo;
-
-void renderModuleCreate(EngineHandle handle, RenderModuleCreateInfo info, RenderModule* renderModule);
-void renderModuleDestroy(RenderModule renderModule);
-
-#pragma endregion
-
-#pragma region ComputeModules
-
-DEFINE_HANDLE(ComputeModule);
-
 typedef enum ComputeModuleType {
 	COMPUTE_MODULE_TYPE_COMPUTE,
-	COMPUTE_MODULE_TYPE_POST_PROCESS,
-	COMPUTE_MODULE_TYPE_IMAGE_COMBINE
+	COMPUTE_MODULE_TYPE_POST_PROCESS
 } ComputeModuleType;
 
-typedef struct ComputeModuleComputeInfo {
-	uint32_t groupCountX;
-	uint32_t groupCountY;
-	uint32_t groupCountZ;
-}ComputeModuleComputeInfo;
-typedef EMPTY_STRUCT ComputeModulePostProcessInfo;
-typedef EMPTY_STRUCT ComputeModuleImageCombineInfo;
+typedef struct RenderModuleDescription {
+	RenderModuleType type;
+	RenderModule* handle;
 
-typedef struct ComputeModuleCreateInfo {
+	ImageSampleCount sampleCount;
+	uint32_t colorOutputCount;
+	ImageResourceDescription* colorOutputImages;
+
+	bool_t depthBuffered;
+	ImageReference* depthImage;
+
+}RenderModuleDescription;
+
+typedef struct ComputeModuleDescription {
 	ComputeModuleType type;
-	ShaderInputImages shaderInputImages;
-	ShaderOutputImages shaderOutputImages;
+	ComputeModule* handle;
 
-	union {
-		ComputeModuleComputeInfo compute;
-		ComputeModuleImageCombineInfo imageCombine;
-		ComputeModulePostProcessInfo postProcess;
-	};
+} ComputeModuleDescription;
 
-} ComputeModuleCreateInfo;
+typedef enum ResouceType {
+	RESOURCE_TYPE_COLOR_IMAGE,
+	RESOURCE_TYPE_BUFFER
+}ResouceType;
 
-void computeModuleCreate(EngineHandle handle, ComputeModuleCreateInfo info, ComputeModule* computeModule);
-void computeModuleDestroy(ComputeModule computeModule);
+typedef enum ExportStage {
+	EXPORT_STAGE_FRAGMENT_OUTPUT = 1 << 0,
+	EXPORT_STAGE_VERTEXT_OUTPUT = 1 << 1,
+	EXPORT_STAGE_DEPTH_OUTPUT = 1 << 2,
+}ExportStage;
 
-#pragma endregion
+typedef enum ImportStage {
+	IMPORT_STAGE_VERTEX_SHADER_INPUT = 1 << 0,
+	IMPORT_STAGE_FRAGMENT_SHADER_INPUT = 1 << 1,
+}ImportStage;
 
-#pragma region RenderChain
+typedef struct RenderModuleExport {
+	ResouceType resourceType;
+	ExportStage exportStage;
+	uint32_t resourceCount;
+	void* usedResources;
+	RenderModule* exportModule;
+	ComputeModule* importModule;
+}RenderModuleExport;
 
+typedef struct RenderModuleImport {
+	ResouceType resourceType;
+	ImportStage importStage;
+	uint32_t resourceCount;
+	void* usedResources;
+	RenderModule* importModule;
+	ComputeModule* exportModule;
+}RenderModuleImport;
+
+DEFINE_HANDLE(Renderer);
 DEFINE_HANDLE(RenderChain);
 
-typedef struct RenderStepDependency {
-	RenderModule src;
-	RenderModule dst;
-} RenderStepDependency;
-
-typedef struct ComputeModuleDependency {
-	ComputeModule src;
-	ComputeModule dst;
-}ComputeModuleDependency;
-
-typedef struct ModuleDependency {
-	void* src;
-	void* dst;
-} ModuleDependency;
-
-typedef struct RenderOutput {
-	uint32_t outputImageCount;
-	ImageReference* outputImages;
-}RenderOutput;
-
-typedef struct RenderInput {
-	uint32_t inputImageCount;
-	ImageReference* inputImages;
-}RenderInput;
-
-typedef struct RenderChainCreateInfo {
-	RenderInput input;
+typedef struct RendererCreateInfo {
 
 	uint32_t preRenderComputeModuleCount;
-	ComputeModule* preRenderComputeModules;
-	uint32_t preRenderDependencyCount;
-	ComputeModuleDependency* preRenderDependencies;
+	ComputeModuleDescription* preRenderComputeModules;
 
-	uint32_t renderStepCount;
-	RenderModule* renderSteps;
-	uint32_t renderStepDependencyCount;
-	ImageSize renderStepImageSize;
-	RenderStepDependency* renderStepDependencies;
+	uint32_t renderModuleResourceImportCount;
+	RenderModuleImport* renderModuleResourceImports;
 
+	uint32_t imageWidth; // the height of the image rendered to, 0 for the size of the window
+	uint32_t imageHeight; // the width of the image rendered to, 0 for the size of the window
+	uint32_t renderModuleCount;
+	RenderModuleDescription* renderModules;
+
+	uint32_t renderModuleResourceExportCount;
+	RenderModuleExport* renderModuleResourceExports;
+	
 	uint32_t postRenderComputeModuleCount;
-	ComputeModule* postRenderComputeModules;
-	uint32_t postRenderDependencyCount;
-	ComputeModuleDependency* postRenderDependencies;
+	ComputeModuleDescription* postRenderComputeModules;
 
-	RenderOutput output;
-} RenderChainCreateInfo;
+} RendererCreateInfo;
 
-void renderChainCreate(EngineHandle handle, RenderChainCreateInfo info, RenderChain* renderChain);
-void renderChainDestroy(RenderChain renderChain);
-
-#pragma endregion
-
-#pragma region GraphicsChain
-
-DEFINE_HANDLE(GraphicsChain);
-
-
-
-
-
-#pragma endregion
+void rendererCreate(EngineHandle handle, RendererCreateInfo info, Renderer* renderer);
+void rendererDestroy(Renderer renderer);
 
 void buildGraphics(EngineHandle handle);
 void destroyGraphics();
