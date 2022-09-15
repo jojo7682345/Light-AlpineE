@@ -1,7 +1,6 @@
 #pragma once
 #include <core/core.h>
 
-
 #pragma region ImageStack & ImagePool
 
 typedef struct ImageReference_T {
@@ -45,3 +44,37 @@ typedef struct ImagePool_T {
 
 #pragma endregion
 
+typedef struct RenderModule_T {
+	EngineHandle handle;
+	RenderModuleType type;
+
+
+
+}RenderModule_T;
+
+typedef struct ComputeModule_T {
+	EngineHandle handle;
+	ComputeModuleType type;
+
+
+
+}ComputeModule_T;
+
+typedef struct Renderer_T {
+	EngineHandle handle;
+
+	uint32_t renderModuleCount;
+	RenderModule_T* renderModules;
+
+	uint32_t renderModuleImageCount;
+	ImageReference* renderModuleImages;
+
+
+
+	VkRenderPass renderPass;
+	VkFramebuffer buffer;
+}Renderer_T;
+
+typedef struct RenderChain_T {
+
+}RenderChain_T;

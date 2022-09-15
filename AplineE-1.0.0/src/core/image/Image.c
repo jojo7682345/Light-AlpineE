@@ -119,4 +119,116 @@ void imagePoolDestroy(ImagePool pool) {
 
 #pragma endregion
 
+typedef struct ImageLifetimeData {
+	bool_t exported;
+	ExportStage exportStage;
 
+
+	VkFormat format;
+	VkSampleCountFlags sampleCount;
+
+	bool_t imported;
+
+	ImageType type;
+}ImageLifetimeData;
+
+typedef struct DependencyData {
+	uint32_t moduleSrc;
+	uint32_t moduleDst;
+}DependencyData;
+
+
+void rendererCreate(EngineHandle handle, RendererCreateInfo info, Renderer* rendererHandle) {
+	Renderer renderer = fsAllocate(sizeof(Renderer_T));
+	*rendererHandle = renderer;
+
+	renderer->renderModuleCount = info.renderModuleCount;
+	renderer->renderModules = fsAllocate(sizeof(RenderModule_T) * renderer->renderModuleCount);
+	for (uint32_t i = 0; i < renderer->renderModuleCount; i++) {
+		RenderModule renderModule = renderer->renderModules + i;
+		RenderModuleDescription description = info.renderModules[i];
+		*description.handle = renderModule;
+
+		renderModule->handle = handle;
+		renderModule->type = description.type;
+		
+
+		renderer->renderModuleImageCount += description.colorOutputCount;
+		renderer->renderModuleImageCount += description.colorInputCount;
+		renderer->renderModuleImageCount += description.depthBuffered ? 1 : 0;
+	}
+	
+
+	ImageLifetimeData* imageData;
+	
+	uint32_t attachmentCount = 0;
+	VkAttachmentDescription* imageAttachments = fsAllocate(sizeof(VkAttachmentDescription) * attachmentCount);
+	for (uint32_t i = 0; i < attachmentCount; i++) {
+		VkAttachmentDescription* attachment = imageAttachments + i;
+		
+		attachment->flags = 0;
+		
+		attachment->finalLayout = imageData[i].exported ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_GENERAL;
+		attachment->initialLayout = imageData[i].imported ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_UNDEFINED;
+
+		attachment->loadOp = imageData[i].imported ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		attachment->storeOp = imageData[i].exported ? VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+		attachment->stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		attachment->stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+		attachment->format = imageData[i].format;
+		attachment->samples = imageData[i].sampleCount;
+	}
+
+	DependencyData* dependencyData;
+
+	uint32_t dependencyCount = 0;
+	VkSubpassDependency* dependencies = fsAllocate(sizeof(VkSubpassDependency) * dependencyCount + 2);
+	{
+		uint32_t dependencyIndex = 0;
+		for (uint32_t i = 0; i < dependencyCount; i++ & dependencyIndex++) {
+			VkSubpassDependency* dependency = dependencies + dependencyIndex;
+			DependencyData dep = dependencyData[i];
+			dependency->dependencyFlags = 0;
+			dependency->srcSubpass = dep.moduleSrc;
+			dependency->dstSubpass = dep.moduleDst;
+			
+		}
+		for (uint32_t i = 0; i < dependencyCount; i++ & dependencyIndex++) {
+			VkSubpassDependency* dependency = dependencies + dependencyIndex;
+			//import dependencies;
+		}
+		for (uint32_t i = 0; i < dependencyCount; i++ & dependencyIndex++) {
+			VkSubpassDependency* dependency = dependencies + dependencyIndex;
+			//export dependencies;
+		}
+		
+	}
+
+	uint32_t subpassCount = 0;
+	VkSubpassDescription* subpasses = fsAllocate(sizeof(VkSubpassDescription) * subpassCount);
+	for (uint32_t i = 0; i < subpassCount; i++) {
+		VkSubpassDescription* subpass = subpasses + i;
+		subpass->pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		
+
+
+	}
+
+	VkRenderPassCreateInfo renderPassInfo = { 0 };
+	renderPassInfo.attachmentCount = attachmentCount;
+	renderPassInfo.pAttachments = imageAttachments;
+	renderPassInfo.subpassCount = subpassCount;
+	renderPassInfo.pSubpasses = subpasses;
+	renderPassInfo.dependencyCount = dependencyCount;
+	renderPassInfo.pDependencies = dependencies;
+
+	VkCheck(vkCreateRenderPass(DEVICE(handle), &renderPassInfo, nullptr, &renderer->renderPass));
+
+
+}
+
+void rendererDestroy(Renderer renderer) {
+
+}

@@ -72,8 +72,11 @@ typedef struct RenderModuleDescription {
 	RenderModule* handle;
 
 	ImageSampleCount sampleCount;
+
 	uint32_t colorOutputCount;
 	ImageResourceDescription* colorOutputImages;
+	uint32_t colorInputCount;
+	ImageResourceDescription* colorInputImages;
 
 	bool_t depthBuffered;
 	ImageReference* depthImage;
@@ -86,21 +89,52 @@ typedef struct ComputeModuleDescription {
 
 } ComputeModuleDescription;
 
+typedef enum ImageAccessType {
+	IMAGE_ACCESS_TYPE_INPUT_ATTACHMENT,
+	IMAGE_ACCESS_TYPE_OUTPUT_ATTACHMENT,
+	IMAGE_ACCESS_TYPE_SHADER_READ,
+	IMAGE_ACCESS_TYPE_SHADER_WRITE,
+}ImageAccessType;
+
+typedef enum ImageType {
+	IMAGE_TYPE_COLOR,
+	IMAGE_TYPE_DEPTH,
+}ImageType;
+
 typedef enum ResouceType {
 	RESOURCE_TYPE_COLOR_IMAGE,
 	RESOURCE_TYPE_BUFFER
 }ResouceType;
 
-typedef enum ExportStage {
+typedef enum ExportStageFlag {
 	EXPORT_STAGE_FRAGMENT_OUTPUT = 1 << 0,
 	EXPORT_STAGE_VERTEXT_OUTPUT = 1 << 1,
 	EXPORT_STAGE_DEPTH_OUTPUT = 1 << 2,
-}ExportStage;
+}ExportStageFlag;
+typedef uint32_t ExportStage;
 
-typedef enum ImportStage {
+typedef enum ImportStageFlag {
 	IMPORT_STAGE_VERTEX_SHADER_INPUT = 1 << 0,
 	IMPORT_STAGE_FRAGMENT_SHADER_INPUT = 1 << 1,
-}ImportStage;
+}ImportStageFlag;
+typedef uint32_t ImportStage;
+
+typedef struct RenderModuleDependency {
+	RenderModule* source;
+	RenderModule* destination;
+
+	ImageAccessType srcAccess;
+	ImageAccessType dstAccess;
+
+	ExportStage srcStage;
+	ImportStage dstStage;
+
+	uint32_t resourceCount;
+	void* resources;
+}RenderModuleDependency;
+
+#define EXPORT_MODULE_EXTERNAL ((void*)0x00)
+#define IMPORT_MODULE_EXTERNAL ((void*)0x00)
 
 typedef struct RenderModuleExport {
 	ResouceType resourceType;
@@ -123,6 +157,8 @@ typedef struct RenderModuleImport {
 DEFINE_HANDLE(Renderer);
 DEFINE_HANDLE(RenderChain);
 
+#define IMAGE_SIZE_SCREEN_SIZE 0
+
 typedef struct RendererCreateInfo {
 
 	uint32_t preRenderComputeModuleCount;
@@ -135,6 +171,8 @@ typedef struct RendererCreateInfo {
 	uint32_t imageHeight; // the width of the image rendered to, 0 for the size of the window
 	uint32_t renderModuleCount;
 	RenderModuleDescription* renderModules;
+	uint32_t dependencyCount;
+	RenderModuleDependency* dependencies;
 
 	uint32_t renderModuleResourceExportCount;
 	RenderModuleExport* renderModuleResourceExports;

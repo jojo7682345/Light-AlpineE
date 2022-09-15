@@ -72,6 +72,8 @@ void buildGraphics(EngineHandle handle) {
 	mainGeometryDescription.sampleCount = IMAGE_SAMPLE_COUNT_1;
 	mainGeometryDescription.colorOutputCount = 4;
 	mainGeometryDescription.colorOutputImages = mainGeometryImages;
+	mainGeometryDescription.colorInputCount = 0;
+	mainGeometryDescription.colorInputImages = nullptr;
 	mainGeometryDescription.depthBuffered = true;
 	mainGeometryDescription.depthImage = &depth;
 
@@ -117,14 +119,12 @@ void buildGraphics(EngineHandle handle) {
 
 	RenderModuleExport mainRenderExport{};
 	mainRenderExport.resourceType = RESOURCE_TYPE_COLOR_IMAGE;
-	mainRenderExport.exportStage = EXPORT_STAGE_FRAGMENT_OUTPUT;
 	mainRenderExport.resourceCount = 1;
 	mainRenderExport.exportModule = &transparentPass;
 	mainRenderExport.importModule = &uiOverlay;
 
 	RenderModuleExport uiRenderExport{};
 	uiRenderExport.resourceType = RESOURCE_TYPE_COLOR_IMAGE;
-	uiRenderExport.exportStage = EXPORT_STAGE_FRAGMENT_OUTPUT;
 	uiRenderExport.resourceCount = 1;
 	uiRenderExport.usedResources = uiRenderImages;
 	uiRenderExport.exportModule = &uiRendering;
@@ -134,6 +134,15 @@ void buildGraphics(EngineHandle handle) {
 		mainRenderExport,
 		uiRenderExport
 	};
+	uint32_t exportCount = sizeof(exports)/sizeof(RenderModuleExport);
+
+	RenderModuleDescription renderModules[] = {
+		mainGeometryDescription,
+		uiRenderDescription,
+		deferedPassDescription,
+		transparentPassDescription
+	};
+	uint32_t renderModuleCount = sizeof(renderModules)/sizeof(RenderModuleDescription);
 
 	RendererCreateInfo rendererCreateInfo{};
 	rendererCreateInfo.preRenderComputeModuleCount = 0;
@@ -142,22 +151,22 @@ void buildGraphics(EngineHandle handle) {
 	rendererCreateInfo.renderModuleResourceImportCount = 0;
 	rendererCreateInfo.renderModuleResourceImports = nullptr;
 
-	rendererCreateInfo.imageWidth = 0;
-	rendererCreateInfo.imageHeight = 0;
-	rendererCreateInfo.renderModuleCount = 0;
-	rendererCreateInfo.renderModules = nullptr;
+	rendererCreateInfo.imageWidth = IMAGE_SIZE_SCREEN_SIZE;
+	rendererCreateInfo.imageHeight = IMAGE_SIZE_SCREEN_SIZE;
+	rendererCreateInfo.renderModuleCount = renderModuleCount;
+	rendererCreateInfo.renderModules = renderModules;
 
-	rendererCreateInfo.renderModuleResourceExportCount = 0;
-	rendererCreateInfo.renderModuleResourceExports = nullptr;
+	rendererCreateInfo.renderModuleResourceExportCount = exportCount;
+	rendererCreateInfo.renderModuleResourceExports = exports;
 
-	rendererCreateInfo.postRenderComputeModuleCount = 0;
-	rendererCreateInfo.postRenderComputeModules = nullptr;
+	rendererCreateInfo.postRenderComputeModuleCount = 1;
+	rendererCreateInfo.postRenderComputeModules = &uiOverlayDescription;
 
 
 	rendererCreate(handle, rendererCreateInfo, &deferedRenderer);
 
 
-	renderChainCreate(handle, renderChainCreateInfo, &renderChain);
+	//renderChainCreate(handle, renderChainCreateInfo, &renderChain);
 }
 
 
