@@ -7,6 +7,8 @@ DEFINE_HANDLE(ImageReference);
 DEFINE_HANDLE(ImageStack);
 DEFINE_HANDLE(ImagePool);
 
+typedef ImageReference* ImageReferenceHandle;
+
 typedef enum SizeScalingType {
 	SIZE_SCALING_TYPE_FIXED = 0,
 	SIZE_SCALING_TYPE_MULTIPLY = 1,
@@ -24,6 +26,13 @@ typedef struct ImageResourceDescription {
 	ImageReference* imageReference;
 	ImageFormat imageFormat;
 }ImageResourceDescription;
+
+typedef struct ImageSubResourceDescription {
+	ImageReference* imageReference;
+	ImageFormat imageFormat;
+	uint32_t width;
+	uint32_t height;
+};
 
 typedef struct ImageStackLayout {
 
@@ -53,137 +62,100 @@ void imagePoolDestroy(ImagePool pool);
 
 #pragma endregion
 
+typedef enum RenderChainNodeType {
+	RENDER_NODE_OUTPUT,
+	RENDER_NODE_RENDER,
+	RENDER_NODE_POST_PROCESS,
+	RENDER_NODE_ENTRY
+}RenderChainNodeType;
 
-DEFINE_HANDLE(RenderModule);
-DEFINE_HANDLE(ComputeModule);
+typedef void* RenderChainNode;
 
-typedef enum RenderModuleType {
-	RENDER_MODULE_TYPE_RENDER,
-	RENDER_MODULE_TYPE_POST_PROCESS,
-}RenderModuleType;
+typedef struct RenderChainOutput {
+	RenderChainNodeType type;
 
-typedef enum ComputeModuleType {
-	COMPUTE_MODULE_TYPE_COMPUTE,
-	COMPUTE_MODULE_TYPE_POST_PROCESS
-} ComputeModuleType;
+	uint32_t exportImageCount;
+	ImageReferenceHandle* exportImages;
+}RenderChainOutput;
 
-typedef struct RenderModuleDescription {
-	RenderModuleType type;
-	RenderModule* handle;
+typedef struct RenderChainRenderModule {
+	RenderChainNodeType type;
+	uint32_t dependantCount;
+	RenderChainNode* dependants;
+	
+	uint32_t outputImageCount;
+	ImageReferenceHandle* outputImages;
+
+	uint32_t inputImageCount;
+	ImageReferenceHandle* inputImages;
+
+	uint32_t shaderReadImageCount;
+	ImageReferenceHandle* shaderReadImages;
+	
+	uint32_t shaderWriteImageCount;
+	ImageReferenceHandle* shaderWriteImages;
 
 	ImageSampleCount sampleCount;
-
-	uint32_t colorOutputCount;
-	ImageResourceDescription* colorOutputImages;
-	uint32_t colorInputCount;
-	ImageResourceDescription* colorInputImages;
+	uint32_t viewportX;
+	uint32_t viewportY;
+	uint32_t viewportWidth;
+	uint32_t viewportHeight;
 
 	bool_t depthBuffered;
-	ImageReference* depthImage;
+	ImageReferenceHandle depthImage;
+	bool_t clearDepthBuffer;
 
-}RenderModuleDescription;
+}RenderChainRenderModule;
 
-typedef struct ComputeModuleDescription {
-	ComputeModuleType type;
-	ComputeModule* handle;
+typedef struct RenderChainPostProcessModule {
+	RenderChainNodeType type;
+	uint32_t dependantCount;
+	RenderChainNode* dependants;
 
-} ComputeModuleDescription;
+	uint32_t outputImageCount;
+	ImageReferenceHandle* outputImages;
 
-typedef enum ImageAccessType {
-	IMAGE_ACCESS_TYPE_INPUT_ATTACHMENT,
-	IMAGE_ACCESS_TYPE_OUTPUT_ATTACHMENT,
-	IMAGE_ACCESS_TYPE_SHADER_READ,
-	IMAGE_ACCESS_TYPE_SHADER_WRITE,
-}ImageAccessType;
+	uint32_t inputImageCount;
+	ImageReferenceHandle* inputImages;
 
-typedef enum ImageType {
-	IMAGE_TYPE_COLOR,
-	IMAGE_TYPE_DEPTH,
-}ImageType;
+	uint32_t shaderReadImageCount;
+	ImageReferenceHandle* shaderReadImages;
 
-typedef enum ResouceType {
-	RESOURCE_TYPE_COLOR_IMAGE,
-	RESOURCE_TYPE_BUFFER
-}ResouceType;
+	uint32_t shaderWriteImageCount;
+	ImageReferenceHandle* shaderWriteImages;
 
-typedef enum ExportStageFlag {
-	EXPORT_STAGE_FRAGMENT_OUTPUT = 1 << 0,
-	EXPORT_STAGE_VERTEXT_OUTPUT = 1 << 1,
-	EXPORT_STAGE_DEPTH_OUTPUT = 1 << 2,
-}ExportStageFlag;
-typedef uint32_t ExportStage;
+	uint32_t viewportX;
+	uint32_t viewportY;
+	uint32_t viewportWidth;
+	uint32_t viewportHeight;
 
-typedef enum ImportStageFlag {
-	IMPORT_STAGE_VERTEX_SHADER_INPUT = 1 << 0,
-	IMPORT_STAGE_FRAGMENT_SHADER_INPUT = 1 << 1,
-}ImportStageFlag;
-typedef uint32_t ImportStage;
+}RenderChainPostProcessModule;
 
-typedef struct RenderModuleDependency {
-	RenderModule* source;
-	RenderModule* destination;
+typedef struct RenderChainEntryPoint {
+	RenderChainNodeType type;
+	RenderChainNode module;
 
-	ImageAccessType srcAccess;
-	ImageAccessType dstAccess;
+	uint32_t importImageCount;
+	ImageReferenceHandle* importImages;
+};
 
-	ExportStage srcStage;
-	ImportStage dstStage;
-
-	uint32_t resourceCount;
-	void* resources;
-}RenderModuleDependency;
-
-#define EXPORT_MODULE_EXTERNAL ((void*)0x00)
-#define IMPORT_MODULE_EXTERNAL ((void*)0x00)
-
-typedef struct RenderModuleExport {
-	ResouceType resourceType;
-	ExportStage exportStage;
-	uint32_t resourceCount;
-	void* usedResources;
-	RenderModule* exportModule;
-	ComputeModule* importModule;
-}RenderModuleExport;
-
-typedef struct RenderModuleImport {
-	ResouceType resourceType;
-	ImportStage importStage;
-	uint32_t resourceCount;
-	void* usedResources;
-	RenderModule* importModule;
-	ComputeModule* exportModule;
-}RenderModuleImport;
-
-DEFINE_HANDLE(Renderer);
 DEFINE_HANDLE(RenderChain);
+DEFINE_HANDLE(RenderModule);
 
-#define IMAGE_SIZE_SCREEN_SIZE 0
+typedef struct RenderChainCreateInfo {
+	RenderChainOutput output;
 
-typedef struct RendererCreateInfo {
+	uint32_t entryPointCount;
+	RenderChainEntryPoint* entryPoints;
 
-	uint32_t preRenderComputeModuleCount;
-	ComputeModuleDescription* preRenderComputeModules;
-
-	uint32_t renderModuleResourceImportCount;
-	RenderModuleImport* renderModuleResourceImports;
-
-	uint32_t imageWidth; // the height of the image rendered to, 0 for the size of the window
-	uint32_t imageHeight; // the width of the image rendered to, 0 for the size of the window
 	uint32_t renderModuleCount;
-	RenderModuleDescription* renderModules;
-	uint32_t dependencyCount;
-	RenderModuleDependency* dependencies;
+	RenderChainNode** renderModules;
 
-	uint32_t renderModuleResourceExportCount;
-	RenderModuleExport* renderModuleResourceExports;
-	
-	uint32_t postRenderComputeModuleCount;
-	ComputeModuleDescription* postRenderComputeModules;
 
-} RendererCreateInfo;
+}RenderChainCreateInfo;
 
-void rendererCreate(EngineHandle handle, RendererCreateInfo info, Renderer* renderer);
-void rendererDestroy(Renderer renderer);
+void renderChainCreate(EngineHandle handle, RenderChainCreateInfo info, RenderChain* renderChain);
+void renderChainDestroy(RenderChain renderChain);
 
 void buildGraphics(EngineHandle handle);
 void destroyGraphics();

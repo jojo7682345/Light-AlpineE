@@ -44,135 +44,166 @@ ImageReference uiRender;
 ImageReference deferedRender;
 ImageReference transparentRender;
 
-
-RenderModule mainRendering;
-RenderModule uiRendering;
-
-RenderModule deferedPass;
-RenderModule transparentPass;
-
-ComputeModule uiOverlay;
-
-Renderer deferedRenderer;
+ImageReference subResource;
 
 RenderChain renderChain;
 
 void buildGraphics(EngineHandle handle) {
 
-	ImageResourceDescription mainGeometryImages[] = {
-		{ &albedo, IMAGE_FORMAT_B8G8R8A8_SRGB },
-		{ &normal, IMAGE_FORMAT_B8G8R8A8_SRGB },
-		{ &position, IMAGE_FORMAT_B8G8R8A8_SRGB },
-		{ &specular, IMAGE_FORMAT_R32_SFLOAT }
+	ImageReferenceHandle outputImages[] = {
+		&transparentRender,
+		&uiRender,
+		&subResource
+	};
+	RenderChainOutput output{};
+	output.type = RENDER_NODE_OUTPUT;
+	output.exportImageCount = sizeof(outputImages)/sizeof(ImageDataDescription);
+	output.exportImages = outputImages;
+
+
+	RenderChainNode transparentPassDependants[] = {
+		&output
+	};
+	ImageReferenceHandle transparentPassOutputImages[] = {
+		&transparentRender
+	};
+	ImageReferenceHandle deferedPassOutputImages[] = {
+		&deferedRender
+	};
+	RenderChainRenderModule transparentPass{};
+	transparentPass.type = RENDER_NODE_RENDER;
+	transparentPass.dependantCount = sizeof(transparentPassDependants) / sizeof(RenderChainNode);
+	transparentPass.dependants = transparentPassDependants;
+	transparentPass.sampleCount = IMAGE_SAMPLE_COUNT_1;
+
+	transparentPass.outputImageCount = sizeof(transparentPassOutputImages) / sizeof(ImageReferenceHandle);
+	transparentPass.outputImages = transparentPassOutputImages;
+	transparentPass.inputImageCount = sizeof(deferedPassOutputImages) / sizeof(ImageReferenceHandle);
+	transparentPass.inputImages = deferedPassOutputImages;
+
+	transparentPass.depthBuffered = true;
+	transparentPass.depthImage = &depth;
+	transparentPass.clearDepthBuffer = false;
+
+
+	RenderChainNode deferedPassDependants[] = {
+		&transparentPass
 	};
 
-	RenderModuleDescription mainGeometryDescription = {};
-	mainGeometryDescription.type = RENDER_MODULE_TYPE_RENDER;
-	mainGeometryDescription.handle = &mainRendering;
-	mainGeometryDescription.sampleCount = IMAGE_SAMPLE_COUNT_1;
-	mainGeometryDescription.colorOutputCount = 4;
-	mainGeometryDescription.colorOutputImages = mainGeometryImages;
-	mainGeometryDescription.colorInputCount = 0;
-	mainGeometryDescription.colorInputImages = nullptr;
-	mainGeometryDescription.depthBuffered = true;
-	mainGeometryDescription.depthImage = &depth;
+	ImageReferenceHandle mainPassOutputImages[] = {
+		&albedo,
+		&position,
+		&specular,
+		&normal
+	};
+	RenderChainPostProcessModule deferedPass{};
+	deferedPass.type = RENDER_NODE_POST_PROCESS;
+	deferedPass.dependantCount = sizeof(deferedPassDependants) / sizeof(RenderChainNode);
+	deferedPass.dependants = deferedPassDependants;
+	deferedPass.outputImageCount = sizeof(deferedPassOutputImages) / sizeof(ImageReferenceHandle);
+	deferedPass.shaderReadImageCount = sizeof(mainPassOutputImages) / sizeof(ImageReferenceHandle);
+	deferedPass.shaderReadImages = mainPassOutputImages;
 
-	ImageResourceDescription uiRenderImages[] = {
-		{ &uiRender, IMAGE_FORMAT_B8G8R8A8_SRGB }
+
+	RenderChainNode mainPassDependants[] = {
+		&deferedPass
+	};
+	
+	RenderChainRenderModule mainPass{};
+	mainPass.type = RENDER_NODE_RENDER;
+	mainPass.dependantCount = sizeof(mainPassDependants) / sizeof(RenderChainNode);
+	mainPass.dependants = mainPassDependants;
+	mainPass.sampleCount = IMAGE_SAMPLE_COUNT_1;
+	mainPass.outputImageCount = sizeof(mainPassOutputImages) / sizeof(ImageReferenceHandle);
+	mainPass.outputImages = mainPassOutputImages;
+	mainPass.depthBuffered = true;
+	mainPass.depthImage = &depth;
+	mainPass.clearDepthBuffer = false;
+
+
+	RenderChainNode uiRenderDependants[] = {
+		&output
+	};
+	ImageReferenceHandle uiRenderImages[] = {
+		&uiRender
+	};
+	ImageReferenceHandle uiSubResourceImages[] = {
+		&subResource
+	};
+	RenderChainRenderModule uiRenderPass{};
+	uiRenderPass.type = RENDER_NODE_RENDER;
+	uiRenderPass.dependantCount = sizeof(uiRenderDependants) / sizeof(RenderChainNode);
+	uiRenderPass.dependants = uiRenderDependants;
+	uiRenderPass.sampleCount = IMAGE_SAMPLE_COUNT_4;
+
+	uiRenderPass.outputImageCount = sizeof(uiRenderImages) / sizeof(ImageReferenceHandle);
+	uiRenderPass.outputImages = uiRenderImages;
+	uiRenderPass.shaderWriteImageCount = sizeof(uiSubResourceImages)/sizeof(ImageReferenceHandle);
+	uiRenderPass.shaderWriteImages = uiSubResourceImages;
+
+	uiRenderPass.depthBuffered = true;
+	uiRenderPass.depthImage = nullptr;
+	uiRenderPass.clearDepthBuffer = false;
+
+
+	RenderChainEntryPoint mainEntry{};
+	mainEntry.type = RENDER_NODE_ENTRY;
+	mainEntry.module = &mainPass;
+	mainEntry.importImageCount = 0;
+	mainEntry.importImages = nullptr;
+
+	RenderChainEntryPoint uiEntry{};
+	uiEntry.type = RENDER_NODE_ENTRY;
+	uiEntry.module = &uiRenderPass;
+	uiEntry.importImageCount = 0;
+	uiEntry.importImages = nullptr;
+
+
+	ImageResourceDescription images[] = {
+		{&albedo, IMAGE_FORMAT_B8G8R8A8_SRGB},
+		{&position, IMAGE_FORMAT_B8G8R8A8_SRGB},
+		{&specular, IMAGE_FORMAT_B8G8R8A8_SRGB},
+		{&normal, IMAGE_FORMAT_B8G8R8A8_SRGB},
+
+		{&uiRender, IMAGE_FORMAT_B8G8R8A8_SRGB},
+		{&deferedRender, IMAGE_FORMAT_B8G8R8A8_SRGB},
+		{&transparentRender, IMAGE_FORMAT_B8G8R8A8_SRGB}
 	};
 
-	RenderModuleDescription uiRenderDescription{};
-	uiRenderDescription.type = RENDER_MODULE_TYPE_RENDER;
-	uiRenderDescription.handle = &uiRendering;
-	uiRenderDescription.sampleCount = IMAGE_SAMPLE_COUNT_4;
-	mainGeometryDescription.colorOutputCount = 1;
-	mainGeometryDescription.colorOutputImages = uiRenderImages;;
-	mainGeometryDescription.depthBuffered = true;
-
-	ImageResourceDescription deferedPassImages[] = {
-		{ &deferedRender, IMAGE_FORMAT_B8G8R8A8_SRGB }
+	ImageSubResourceDescription subResourceImages[] = {
+		{&subResource, IMAGE_FORMAT_B8G8R8A8_SRGB, 500,500 }
 	};
 
-	RenderModuleDescription deferedPassDescription{};
-	deferedPassDescription.type = RENDER_MODULE_TYPE_POST_PROCESS;
-	deferedPassDescription.handle = &deferedPass;
-	deferedPassDescription.sampleCount = IMAGE_SAMPLE_COUNT_1;
-	deferedPassDescription.colorOutputCount = 1;
-	deferedPassDescription.colorOutputImages = deferedPassImages;
-
-	ImageResourceDescription transparentPassImages[] = {
-		{ &transparentRender, IMAGE_FORMAT_B8G8R8A8_SRGB }
+	ImageReferenceHandle depthImages[] = {
+		&depth
 	};
 
-	RenderModuleDescription transparentPassDescription{};
-	transparentPassDescription.type = RENDER_MODULE_TYPE_RENDER;
-	transparentPassDescription.handle = &transparentPass;
-	transparentPassDescription.sampleCount = IMAGE_SAMPLE_COUNT_1;
-	transparentPassDescription.colorOutputCount = 1;
-	transparentPassDescription.colorOutputImages = transparentPassImages;
-	transparentPassDescription.depthBuffered = true;
-	transparentPassDescription.depthImage = &depth;
-
-	ComputeModuleDescription uiOverlayDescription{};
-	uiOverlayDescription.type = COMPUTE_MODULE_TYPE_POST_PROCESS;
-	uiOverlayDescription.handle = &uiOverlay;
-
-	RenderModuleExport mainRenderExport{};
-	mainRenderExport.resourceType = RESOURCE_TYPE_COLOR_IMAGE;
-	mainRenderExport.resourceCount = 1;
-	mainRenderExport.exportModule = &transparentPass;
-	mainRenderExport.importModule = &uiOverlay;
-
-	RenderModuleExport uiRenderExport{};
-	uiRenderExport.resourceType = RESOURCE_TYPE_COLOR_IMAGE;
-	uiRenderExport.resourceCount = 1;
-	uiRenderExport.usedResources = uiRenderImages;
-	uiRenderExport.exportModule = &uiRendering;
-	uiRenderExport.importModule = &uiOverlay;
-
-	RenderModuleExport exports[] = {
-		mainRenderExport,
-		uiRenderExport
+	RenderChainEntryPoint entryPoints[] = {
+		mainEntry,
+		uiEntry
 	};
-	uint32_t exportCount = sizeof(exports)/sizeof(RenderModuleExport);
 
-	RenderModuleDescription renderModules[] = {
-		mainGeometryDescription,
-		uiRenderDescription,
-		deferedPassDescription,
-		transparentPassDescription
+	void* renderModules[] = {
+		&mainPass,
+		&deferedPass,
+		&transparentPass,
+		&uiRenderPass
 	};
-	uint32_t renderModuleCount = sizeof(renderModules)/sizeof(RenderModuleDescription);
 
-	RendererCreateInfo rendererCreateInfo{};
-	rendererCreateInfo.preRenderComputeModuleCount = 0;
-	rendererCreateInfo.preRenderComputeModules = nullptr;
-
-	rendererCreateInfo.renderModuleResourceImportCount = 0;
-	rendererCreateInfo.renderModuleResourceImports = nullptr;
-
-	rendererCreateInfo.imageWidth = IMAGE_SIZE_SCREEN_SIZE;
-	rendererCreateInfo.imageHeight = IMAGE_SIZE_SCREEN_SIZE;
-	rendererCreateInfo.renderModuleCount = renderModuleCount;
-	rendererCreateInfo.renderModules = renderModules;
-
-	rendererCreateInfo.renderModuleResourceExportCount = exportCount;
-	rendererCreateInfo.renderModuleResourceExports = exports;
-
-	rendererCreateInfo.postRenderComputeModuleCount = 1;
-	rendererCreateInfo.postRenderComputeModules = &uiOverlayDescription;
+	RenderChainCreateInfo info = {};
+	info.output = output;
+	info.entryPointCount = sizeof(entryPoints)/sizeof(RenderChainEntryPoint);
+	info.entryPoints = entryPoints;
 
 
-	rendererCreate(handle, rendererCreateInfo, &deferedRenderer);
-
-
-	//renderChainCreate(handle, renderChainCreateInfo, &renderChain);
+	renderChainCreate(handle, info, &renderChain);
+	
 }
 
 
 void destroyGraphics() {
 
-	rendererDestroy(deferedRenderer);
+	
 
 }
 
