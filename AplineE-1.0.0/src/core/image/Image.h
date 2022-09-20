@@ -58,3 +58,9 @@ typedef struct ImagePool_T {
 
 #pragma endregion
 
+typedef struct Image_T {
+	VkImage image;
+	VkImageView view;
+	VkFormat format;
+	VkExtent2D extent;
+};

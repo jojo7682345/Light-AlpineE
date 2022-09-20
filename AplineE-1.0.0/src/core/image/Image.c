@@ -118,5 +118,9 @@ void imagePoolDestroy(ImagePool pool) {
 	fsFree(pool);
 }
 
+void imageAllocateHandle(ImageRef ref) {
+	*ref = fsAllocate(sizeof(Image_T));
+}
+
 #pragma endregion
 

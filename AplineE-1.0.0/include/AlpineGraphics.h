@@ -7,8 +7,6 @@ DEFINE_HANDLE(ImageReference);
 DEFINE_HANDLE(ImageStack);
 DEFINE_HANDLE(ImagePool);
 
-typedef ImageReference* ImageReferenceHandle;
-
 typedef enum SizeScalingType {
 	SIZE_SCALING_TYPE_FIXED = 0,
 	SIZE_SCALING_TYPE_MULTIPLY = 1,
@@ -22,17 +20,6 @@ typedef struct ImageDataDescription {
 	ImageAspectFlags imageAspect;
 }ImageDataDescription;
 
-typedef struct ImageResourceDescription {
-	ImageReference* imageReference;
-	ImageFormat imageFormat;
-}ImageResourceDescription;
-
-typedef struct ImageSubResourceDescription {
-	ImageReference* imageReference;
-	ImageFormat imageFormat;
-	uint32_t width;
-	uint32_t height;
-}ImageSubResourceDescription;
 
 typedef struct ImageStackLayout {
 
@@ -62,6 +49,93 @@ void imagePoolDestroy(ImagePool pool);
 
 #pragma endregion
 
+DEFINE_HANDLE(Image);
+typedef Image* ImageRef;
+
+void imageAllocateHandle(ImageRef ref);
+
+typedef enum ShaderImageState {
+	SHADER_IMAGE_STATE_READ_ONLY,
+	SHADER_IMAGE_STATE_STORAGE
+}ShaderImageState;
+
+typedef struct ShaderImageTrack {
+	uint32_t imageCount;
+	ImageRef* images;
+	uint32_t moduleCount;
+	ShaderImageState* imageStates;
+}ShaderImageTrack;
+
+typedef enum ImageAccessType {
+	IMAGE_ACCESS_TYPE_SHADER_IMAGE_TRACK,
+	IMAGE_ACCESS_TYPE_RENDER_INPUT,
+	IMAGE_ACCESS_TYPE_RENDER_OUTPUT,
+}ImageAccessType;
+
+typedef struct ImageResourceDescription {
+	ImageRef image;
+	ImageAccessType initialAccessType;
+	ImageAccessType finalAccessType;
+
+}ImageResourceDescription;
+
+DEFINE_HANDLE(RenderModule);
+
+typedef enum RenderModuleType {
+	RENDER_MODULE_TYPE_RENDER,
+	RENDER_MODULE_TYPE_POST_PROCESS
+}RenderModuleType;
+
+typedef struct RenderModuleDescription {
+
+	RenderModule* handle;
+	RenderModuleType type;
+
+	uint32_t outputImageCount;
+	ImageRef* outputImages;
+
+	uint32_t inputImageCount;
+	ImageRef* inputImages;
+
+	ImageRef depthImage;
+	ImageSampleCount sampleCount;
+
+}RenderModuleDescription;
+
+typedef enum RenderModuleStage {
+	RENDER_MODULE_STAGE_FRAGMENT_OUTPUT
+}RenderModuleStage;
+
+typedef enum RenderModuleAccess {
+	RENDER_MODULE_STAGE_FRAGMENT_OUTPUT
+}RenderModuleAccess;
+
+typedef struct RenderModuleDependency {
+	RenderModule* src;
+	RenderModule* dst;
+	RenderModuleStage srcStage;
+	RenderModuleStage dstStage;
+	RenderModuleAccess srcAccess;
+	RenderModuleAccess dstAccess;
+}RenderModuleDependency;
+
+typedef struct RenderSystem {
+	uint32_t width; //0 for window width;
+	uint32_t height; //0 for window height;
+
+	uint32_t imageResourceCount;
+	ImageResourceDescription imageResources;
+
+	uint32_t depthImageResourceCount;
+	ImageResourceDescription deptImageResources;
+
+	uint32_t renderModuleCount;
+	RenderModuleDescription renderModules;
+
+	uint32_t dependencyCount;
+	RenderModuleDependency* dependencies;
+
+};
 
 
 void buildGraphics(EngineHandle handle);
