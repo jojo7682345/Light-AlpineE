@@ -4,6 +4,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <MemoryUtilities/DataGrid.h>
+#include <MemoryUtilities/DataTable.h>
 
 
 #pragma region ImagePool
@@ -119,116 +120,93 @@ void imagePoolDestroy(ImagePool pool) {
 
 #pragma endregion
 
-typedef struct ImageLifetimeData {
-	bool_t exported;
-	ExportStage exportStage;
+void renderChainCreate(EngineHandle handle, RenderChainCreateInfo info, RenderChain* renderChain) {
 
+	RenderChain chain = fsAllocate(sizeof(RenderChain_T));
+	*renderChain = chain;
+	chain->handle = handle;
+	
 
-	VkFormat format;
-	VkSampleCountFlags sampleCount;
+	uint32_t attachmentIndex = 0;
 
-	bool_t imported;
-
-	ImageType type;
-}ImageLifetimeData;
-
-typedef struct DependencyData {
-	uint32_t moduleSrc;
-	uint32_t moduleDst;
-}DependencyData;
-
-
-void rendererCreate(EngineHandle handle, RendererCreateInfo info, Renderer* rendererHandle) {
-	Renderer renderer = fsAllocate(sizeof(Renderer_T));
-	*rendererHandle = renderer;
-
-	renderer->renderModuleCount = info.renderModuleCount;
-	renderer->renderModules = fsAllocate(sizeof(RenderModule_T) * renderer->renderModuleCount);
-	for (uint32_t i = 0; i < renderer->renderModuleCount; i++) {
-		RenderModule renderModule = renderer->renderModules + i;
-		RenderModuleDescription description = info.renderModules[i];
-		*description.handle = renderModule;
-
-		renderModule->handle = handle;
-		renderModule->type = description.type;
-		
-
-		renderer->renderModuleImageCount += description.colorOutputCount;
-		renderer->renderModuleImageCount += description.colorInputCount;
-		renderer->renderModuleImageCount += description.depthBuffered ? 1 : 0;
+	//create depth resources
+	uint32_t impliedDepthImageCount = 0;
+	for (uint32_t i = 0; i < info.renderModuleCount; i++) {
+		RenderChainRenderModule* module = (info.renderModules + i);
+		if (module->type != RENDER_MODULE_TYPE_RENDER) {
+			continue;
+		}
+		if (module->depthBuffered) {
+			continue;
+		}
+		if (module->depthImage) {
+			continue;
+		}
+		impliedDepthImageCount++;
 	}
-	
+	uint32_t definedDepthImageCount = info.depthImageResourceCount;
+	uint32_t depthImageCount = definedDepthImageCount + impliedDepthImageCount;
 
-	ImageLifetimeData* imageData;
-	
+	uint32_t impliedColorImageCount = 0;
+	for (uint32_t i = 0; i < info.renderModuleCount; i++) {
+		RenderChainRenderModule* module = (info.renderModules + i);
+		if (module->type != RENDER_MODULE_TYPE_RENDER) {
+			continue;
+		}
+		if (module->sampleCount!=IMAGE_SAMPLE_COUNT_1) {
+			continue;
+		}
+
+		impliedDepthImageCount += module->outputImageCount;
+	}
+	uint32_t definedColorImageCount = info.imageResourceCount;
+	uint32_t colorImageCount = definedColorImageCount + impliedColorImageCount;
+
+	uint32_t subResourceImageCount = info.imageSubResourceCount;
+
+	uint32_t imageCount = colorImageCount + depthImageCount + subResourceImageCount;
+	chain->images = fsAllocate(sizeof(Image_T) * imageCount);
+
+	_DataTable depthImageTable = { 0 };
+	size_t imageDescriptorTableLayout[] = {
+		sizeof(ImageReferenceHandle), //Image handle
+		sizeof(ImageCreateInfo), //ImageCreateInfo
+		sizeof(uint32_t) //attachment Index
+	};
+	dataTableCreate(depthImageCount, sizeof(imageDescriptorTableLayout) / sizeof(size_t), imageDescriptorTableLayout, &depthImageTable);
+	uint32_t depthImageIndex = 0;
+	for (uint32_t i = 0; i < definedDepthImageCount; depthImageIndex++ & i++) {
+		ImageReferenceHandle* depthImageHandle = info.depthImageResources + i;
+		dataTableSetElement(depthImageIndex, 0, depthImageHandle, &depthImageTable);
+
+		ImageCreateInfo depthInfo = { 0 };
+		depthInfo.format = VK_FORMAT_D32_SFLOAT;
+		depthInfo.width = engineWindowGetWidth(handle);
+		depthInfo.height = engineWindowGetHeight(handle);
+
+	}
+
+
+
+	//create image resources;
+
 	uint32_t attachmentCount = 0;
+
 	VkAttachmentDescription* imageAttachments = fsAllocate(sizeof(VkAttachmentDescription) * attachmentCount);
-	for (uint32_t i = 0; i < attachmentCount; i++) {
-		VkAttachmentDescription* attachment = imageAttachments + i;
-		
-		attachment->flags = 0;
-		
-		attachment->finalLayout = imageData[i].exported ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_GENERAL;
-		attachment->initialLayout = imageData[i].imported ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_UNDEFINED;
-
-		attachment->loadOp = imageData[i].imported ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		attachment->storeOp = imageData[i].exported ? VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE;
-
-		attachment->stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		attachment->stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-
-		attachment->format = imageData[i].format;
-		attachment->samples = imageData[i].sampleCount;
-	}
-
-	DependencyData* dependencyData;
-
-	uint32_t dependencyCount = 0;
-	VkSubpassDependency* dependencies = fsAllocate(sizeof(VkSubpassDependency) * dependencyCount + 2);
-	{
-		uint32_t dependencyIndex = 0;
-		for (uint32_t i = 0; i < dependencyCount; i++ & dependencyIndex++) {
-			VkSubpassDependency* dependency = dependencies + dependencyIndex;
-			DependencyData dep = dependencyData[i];
-			dependency->dependencyFlags = 0;
-			dependency->srcSubpass = dep.moduleSrc;
-			dependency->dstSubpass = dep.moduleDst;
-			
-		}
-		for (uint32_t i = 0; i < dependencyCount; i++ & dependencyIndex++) {
-			VkSubpassDependency* dependency = dependencies + dependencyIndex;
-			//import dependencies;
-		}
-		for (uint32_t i = 0; i < dependencyCount; i++ & dependencyIndex++) {
-			VkSubpassDependency* dependency = dependencies + dependencyIndex;
-			//export dependencies;
-		}
-		
-	}
-
-	uint32_t subpassCount = 0;
-	VkSubpassDescription* subpasses = fsAllocate(sizeof(VkSubpassDescription) * subpassCount);
-	for (uint32_t i = 0; i < subpassCount; i++) {
-		VkSubpassDescription* subpass = subpasses + i;
-		subpass->pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-		
-
-
-	}
 
 	VkRenderPassCreateInfo renderPassInfo = { 0 };
+	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	renderPassInfo.flags = 0;
 	renderPassInfo.attachmentCount = attachmentCount;
 	renderPassInfo.pAttachments = imageAttachments;
-	renderPassInfo.subpassCount = subpassCount;
-	renderPassInfo.pSubpasses = subpasses;
-	renderPassInfo.dependencyCount = dependencyCount;
-	renderPassInfo.pDependencies = dependencies;
 
-	VkCheck(vkCreateRenderPass(DEVICE(handle), &renderPassInfo, nullptr, &renderer->renderPass));
+	VkCheck(vkCreateRenderPass(DEVICE(handle), &renderPassInfo, nullptr, &chain->renderPass));
+
 
 
 }
 
-void rendererDestroy(Renderer renderer) {
+void renderChainDestroy(RenderChain renderChain) {
+
 
 }

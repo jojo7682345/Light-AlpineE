@@ -46,23 +46,17 @@ ImageReference transparentRender;
 
 ImageReference subResource;
 
+RenderModule renderPassModule;
+RenderModule deferedPassModule;
+RenderModule transparentPassModule;
+RenderModule uiRenderModule;
 RenderChain renderChain;
+
 
 void buildGraphics(EngineHandle handle) {
 
-	ImageReferenceHandle outputImages[] = {
-		&transparentRender,
-		&uiRender,
-		&subResource
-	};
-	RenderChainOutput output{};
-	output.type = RENDER_NODE_OUTPUT;
-	output.exportImageCount = sizeof(outputImages)/sizeof(ImageDataDescription);
-	output.exportImages = outputImages;
-
-
 	RenderChainNode transparentPassDependants[] = {
-		&output
+		RENDER_CHAIN_OUTPUT
 	};
 	ImageReferenceHandle transparentPassOutputImages[] = {
 		&transparentRender
@@ -71,7 +65,7 @@ void buildGraphics(EngineHandle handle) {
 		&deferedRender
 	};
 	RenderChainRenderModule transparentPass{};
-	transparentPass.type = RENDER_NODE_RENDER;
+	transparentPass.type = RENDER_MODULE_TYPE_RENDER;
 	transparentPass.dependantCount = sizeof(transparentPassDependants) / sizeof(RenderChainNode);
 	transparentPass.dependants = transparentPassDependants;
 	transparentPass.sampleCount = IMAGE_SAMPLE_COUNT_1;
@@ -97,7 +91,7 @@ void buildGraphics(EngineHandle handle) {
 		&normal
 	};
 	RenderChainPostProcessModule deferedPass{};
-	deferedPass.type = RENDER_NODE_POST_PROCESS;
+	deferedPass.type = RENDER_MODULE_TYPE_POST_PROCESS;
 	deferedPass.dependantCount = sizeof(deferedPassDependants) / sizeof(RenderChainNode);
 	deferedPass.dependants = deferedPassDependants;
 	deferedPass.outputImageCount = sizeof(deferedPassOutputImages) / sizeof(ImageReferenceHandle);
@@ -110,7 +104,7 @@ void buildGraphics(EngineHandle handle) {
 	};
 	
 	RenderChainRenderModule mainPass{};
-	mainPass.type = RENDER_NODE_RENDER;
+	mainPass.type = RENDER_MODULE_TYPE_RENDER;
 	mainPass.dependantCount = sizeof(mainPassDependants) / sizeof(RenderChainNode);
 	mainPass.dependants = mainPassDependants;
 	mainPass.sampleCount = IMAGE_SAMPLE_COUNT_1;
@@ -122,7 +116,7 @@ void buildGraphics(EngineHandle handle) {
 
 
 	RenderChainNode uiRenderDependants[] = {
-		&output
+		RENDER_CHAIN_OUTPUT
 	};
 	ImageReferenceHandle uiRenderImages[] = {
 		&uiRender
@@ -131,7 +125,7 @@ void buildGraphics(EngineHandle handle) {
 		&subResource
 	};
 	RenderChainRenderModule uiRenderPass{};
-	uiRenderPass.type = RENDER_NODE_RENDER;
+	uiRenderPass.type = RENDER_MODULE_TYPE_RENDER;
 	uiRenderPass.dependantCount = sizeof(uiRenderDependants) / sizeof(RenderChainNode);
 	uiRenderPass.dependants = uiRenderDependants;
 	uiRenderPass.sampleCount = IMAGE_SAMPLE_COUNT_4;
@@ -146,18 +140,11 @@ void buildGraphics(EngineHandle handle) {
 	uiRenderPass.clearDepthBuffer = false;
 
 
-	RenderChainEntryPoint mainEntry{};
-	mainEntry.type = RENDER_NODE_ENTRY;
-	mainEntry.module = &mainPass;
-	mainEntry.importImageCount = 0;
-	mainEntry.importImages = nullptr;
-
-	RenderChainEntryPoint uiEntry{};
-	uiEntry.type = RENDER_NODE_ENTRY;
-	uiEntry.module = &uiRenderPass;
-	uiEntry.importImageCount = 0;
-	uiEntry.importImages = nullptr;
-
+	ImageReferenceHandle outputImages[] = {
+		&transparentRender,
+		&uiRender,
+		&subResource
+	};
 
 	ImageResourceDescription images[] = {
 		{&albedo, IMAGE_FORMAT_B8G8R8A8_SRGB},
@@ -178,6 +165,20 @@ void buildGraphics(EngineHandle handle) {
 		&depth
 	};
 
+	RenderChainEntryPoint mainEntry{};
+	mainEntry.module = &mainPass;
+	mainEntry.importImageCount = 0;
+	mainEntry.importImages = nullptr;
+
+	RenderChainEntryPoint uiEntry{};
+	uiEntry.module = &uiRenderPass;
+	uiEntry.importImageCount = 0;
+	uiEntry.importImages = nullptr;
+
+	RenderChainOutput output{};
+	output.exportImageCount = sizeof(outputImages) / sizeof(ImageDataDescription);
+	output.exportImages = outputImages;
+
 	RenderChainEntryPoint entryPoints[] = {
 		mainEntry,
 		uiEntry
@@ -194,6 +195,8 @@ void buildGraphics(EngineHandle handle) {
 	info.output = output;
 	info.entryPointCount = sizeof(entryPoints)/sizeof(RenderChainEntryPoint);
 	info.entryPoints = entryPoints;
+
+
 
 
 	renderChainCreate(handle, info, &renderChain);

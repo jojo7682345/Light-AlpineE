@@ -32,7 +32,7 @@ typedef struct ImageSubResourceDescription {
 	ImageFormat imageFormat;
 	uint32_t width;
 	uint32_t height;
-};
+}ImageSubResourceDescription;
 
 typedef struct ImageStackLayout {
 
@@ -62,24 +62,23 @@ void imagePoolDestroy(ImagePool pool);
 
 #pragma endregion
 
-typedef enum RenderChainNodeType {
-	RENDER_NODE_OUTPUT,
-	RENDER_NODE_RENDER,
-	RENDER_NODE_POST_PROCESS,
-	RENDER_NODE_ENTRY
-}RenderChainNodeType;
+typedef enum RenderModuleType {
+	RENDER_MODULE_TYPE_RENDER,
+	RENDER_MODULE_TYPE_POST_PROCESS,
+}RenderModuleType;
 
 typedef void* RenderChainNode;
 
 typedef struct RenderChainOutput {
-	RenderChainNodeType type;
-
 	uint32_t exportImageCount;
 	ImageReferenceHandle* exportImages;
 }RenderChainOutput;
 
+#define RENDER_CHAIN_OUTPUT ((void*)-1)
+
+
 typedef struct RenderChainRenderModule {
-	RenderChainNodeType type;
+	RenderModuleType type;
 	uint32_t dependantCount;
 	RenderChainNode* dependants;
 	
@@ -88,12 +87,6 @@ typedef struct RenderChainRenderModule {
 
 	uint32_t inputImageCount;
 	ImageReferenceHandle* inputImages;
-
-	uint32_t shaderReadImageCount;
-	ImageReferenceHandle* shaderReadImages;
-	
-	uint32_t shaderWriteImageCount;
-	ImageReferenceHandle* shaderWriteImages;
 
 	ImageSampleCount sampleCount;
 	uint32_t viewportX;
@@ -108,7 +101,7 @@ typedef struct RenderChainRenderModule {
 }RenderChainRenderModule;
 
 typedef struct RenderChainPostProcessModule {
-	RenderChainNodeType type;
+	RenderModuleType type;
 	uint32_t dependantCount;
 	RenderChainNode* dependants;
 
@@ -118,11 +111,11 @@ typedef struct RenderChainPostProcessModule {
 	uint32_t inputImageCount;
 	ImageReferenceHandle* inputImages;
 
-	uint32_t shaderReadImageCount;
+	/*uint32_t shaderReadImageCount;
 	ImageReferenceHandle* shaderReadImages;
 
 	uint32_t shaderWriteImageCount;
-	ImageReferenceHandle* shaderWriteImages;
+	ImageReferenceHandle* shaderWriteImages;*/
 
 	uint32_t viewportX;
 	uint32_t viewportY;
@@ -132,12 +125,11 @@ typedef struct RenderChainPostProcessModule {
 }RenderChainPostProcessModule;
 
 typedef struct RenderChainEntryPoint {
-	RenderChainNodeType type;
 	RenderChainNode module;
 
 	uint32_t importImageCount;
 	ImageReferenceHandle* importImages;
-};
+}RenderChainEntryPoint;
 
 DEFINE_HANDLE(RenderChain);
 DEFINE_HANDLE(RenderModule);
@@ -150,6 +142,15 @@ typedef struct RenderChainCreateInfo {
 
 	uint32_t renderModuleCount;
 	RenderChainNode** renderModules;
+
+	uint32_t imageResourceCount;
+	ImageResourceDescription imageResources;
+
+	uint32_t imageSubResourceCount;
+	ImageSubResourceDescription* imageSubResources;
+
+	uint32_t depthImageResourceCount;
+	ImageReferenceHandle* depthImageResources;
 
 
 }RenderChainCreateInfo;

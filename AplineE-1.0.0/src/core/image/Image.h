@@ -14,6 +14,20 @@ typedef struct ImageReference_T {
 	ImageStack stack;
 }ImageReference_T;
 
+typedef struct ImageDescription {
+	ImageReference* imageReference;
+	ImageFormat imageFormat;
+	ImageUsageFlags imageUsage;
+	ImageAspectFlags imageAspect;
+	VkSampleCountFlags sampleCount;
+}ImageDescription;
+
+typedef struct Image_T {
+	VkImage image;
+	VkImageView view;
+	VkFormat format;
+	VkExtent2D extent;
+}Image_T;
 
 typedef struct ImageStack_T {
 	uint32_t imageCount;
@@ -52,13 +66,6 @@ typedef struct RenderModule_T {
 
 }RenderModule_T;
 
-typedef struct ComputeModule_T {
-	EngineHandle handle;
-	ComputeModuleType type;
-
-
-
-}ComputeModule_T;
 
 typedef struct Renderer_T {
 	EngineHandle handle;
@@ -71,10 +78,16 @@ typedef struct Renderer_T {
 
 
 
-	VkRenderPass renderPass;
-	VkFramebuffer buffer;
+	
 }Renderer_T;
 
 typedef struct RenderChain_T {
+	EngineHandle handle;
 
+	Image_T* images;
+	VkDeviceMemory imageMemory;
+
+	
+	VkRenderPass renderPass;
+	VkFramebuffer buffer;
 }RenderChain_T;
