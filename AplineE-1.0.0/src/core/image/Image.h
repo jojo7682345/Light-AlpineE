@@ -58,36 +58,3 @@ typedef struct ImagePool_T {
 
 #pragma endregion
 
-typedef struct RenderModule_T {
-	EngineHandle handle;
-	RenderModuleType type;
-
-
-
-}RenderModule_T;
-
-
-typedef struct Renderer_T {
-	EngineHandle handle;
-
-	uint32_t renderModuleCount;
-	RenderModule_T* renderModules;
-
-	uint32_t renderModuleImageCount;
-	ImageReference* renderModuleImages;
-
-
-
-	
-}Renderer_T;
-
-typedef struct RenderChain_T {
-	EngineHandle handle;
-
-	Image_T* images;
-	VkDeviceMemory imageMemory;
-
-	
-	VkRenderPass renderPass;
-	VkFramebuffer buffer;
-}RenderChain_T;
