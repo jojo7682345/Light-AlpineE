@@ -69,3 +69,11 @@ const char* engineGpuGetName(EngineHandle handle) {
 	return handle->system.gpuName;
 }
 
+ImageFormat engineGetColorImageFormat(EngineHandle handle) {
+	return handle->system.colorImageFormat;
+}
+
+ImageFormat engineGetDepthImageFormat(EngineHandle handle) {
+	return handle->system.depthImageFormat;
+}
+

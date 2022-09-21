@@ -1,5 +1,5 @@
 #pragma once
-#include "AlpineImageFormats.h"
+#include "AlpineEngine.h"
 
 #pragma region ImageStack & ImagePool
 
@@ -67,6 +67,7 @@ typedef struct ShaderImageTrack {
 }ShaderImageTrack;
 
 typedef enum ImageAccessType {
+	IMAGE_ACCESS_TYPE_UNDEFINED,
 	IMAGE_ACCESS_TYPE_SHADER_IMAGE_TRACK,
 	IMAGE_ACCESS_TYPE_RENDER_INPUT,
 	IMAGE_ACCESS_TYPE_RENDER_OUTPUT,
@@ -78,6 +79,12 @@ typedef struct ImageResourceDescription {
 	ImageAccessType finalAccessType;
 
 }ImageResourceDescription;
+typedef struct ImageDepthResourceDescription {
+	ImageRef image;
+	ImageAccessType initialAccessType;
+	ImageAccessType finalAccessType;
+	ImageSampleCount sampleCount;
+}ImageDepthResourceDescription;
 
 DEFINE_HANDLE(RenderModule);
 
@@ -97,45 +104,58 @@ typedef struct RenderModuleDescription {
 	uint32_t inputImageCount;
 	ImageRef* inputImages;
 
+	uint32_t preserveImageCount;
+	ImageRef* preserveImages;
+
 	ImageRef depthImage;
 	ImageSampleCount sampleCount;
 
 }RenderModuleDescription;
 
 typedef enum RenderModuleStage {
-	RENDER_MODULE_STAGE_FRAGMENT_OUTPUT
+	RENDER_MODULE_STAGE_FRAGMENT_OUTPUT,
+	RENDER_MODULE_STAGE_FRAGMENT_INPUT,
+	RENDER_MODULE_STAGE_DEPTH_OUTPUT,
+	RENDER_MODULE_STAGE_DEPTH_INPUT,
+	RENDER_MODULE_STAGE_VERTEX_INPUT,
+	RENDER_MODULE_STAGE_VERTEX_OUTPUT,
 }RenderModuleStage;
 
-typedef enum RenderModuleAccess {
-	RENDER_MODULE_STAGE_FRAGMENT_OUTPUT
-}RenderModuleAccess;
+#define RENDERER_OUTPUT ((RenderModule*)0x0001)
+#define RENDERER_INPUT ((RenderModule*)0x0002)
 
 typedef struct RenderModuleDependency {
 	RenderModule* src;
 	RenderModule* dst;
 	RenderModuleStage srcStage;
 	RenderModuleStage dstStage;
-	RenderModuleAccess srcAccess;
-	RenderModuleAccess dstAccess;
+	RenderModuleAccessFlags srcAccess;
+	RenderModuleAccessFlags dstAccess;
 }RenderModuleDependency;
 
-typedef struct RenderSystem {
+DEFINE_HANDLE(Renderer);
+
+typedef struct RendererCreateInfo {
+
 	uint32_t width; //0 for window width;
 	uint32_t height; //0 for window height;
 
 	uint32_t imageResourceCount;
-	ImageResourceDescription imageResources;
+	ImageResourceDescription* imageResources;
 
 	uint32_t depthImageResourceCount;
-	ImageResourceDescription deptImageResources;
+	ImageDepthResourceDescription* depthImageResources;
 
 	uint32_t renderModuleCount;
-	RenderModuleDescription renderModules;
+	RenderModuleDescription* renderModules;
 
 	uint32_t dependencyCount;
 	RenderModuleDependency* dependencies;
 
-};
+}RendererCreateInfo;
+
+void rendererCreate(EngineHandle handle, RendererCreateInfo info, Renderer* renderer);
+void rendererDestroy(Renderer renderer);
 
 
 void buildGraphics(EngineHandle handle);

@@ -4,7 +4,7 @@
 #include "../device/device.h"
 #include <string.h>
 #include "../swapchain/swapchain.h"
-
+#include <util/util.h>
 
 VkBool32 checkDeviceExtensionSupport(VkPhysicalDevice device, EngineSettings settings) {
 	uint32_t extensionCount = 0;
@@ -210,6 +210,25 @@ VkPhysicalDeviceFeatures getSelectedDeviceFeatures(EngineSettings settings) {
 	return features;
 }
 
+VkFormat selectColorImageFormat(EngineHandle handle) {
+	return VK_FORMAT_B8G8R8A8_SRGB;
+}
+
+VkFormat selectDepthImageFormat(EngineHandle handle) {
+	VkFormat depthFormats[] = {
+		VK_FORMAT_D32_SFLOAT, 
+		VK_FORMAT_D32_SFLOAT_S8_UINT, 
+		VK_FORMAT_D24_UNORM_S8_UINT
+	};
+	return findSupportedFormat(
+		handle,
+		sizeof(depthFormats)/sizeof(VkFormat),
+		depthFormats,
+		VK_IMAGE_TILING_OPTIMAL,
+		VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+	);
+}
+
 void gpuUpdateSystemCapabilities(EngineHandle handle) {
 	SwapChainSupportDetails swapchainSupport = querySwapChainSupport(PHYSICAL_DEVICE(handle), handle);
 	for (uint32_t i = 0; i < swapchainSupport.presentModeCount; i++) {
@@ -237,7 +256,9 @@ void gpuUpdateSystemCapabilities(EngineHandle handle) {
 	handle->system.maxImageHeight = deviceProperties.limits.maxImageDimension2D;
 	handle->system.gpuName = deviceProperties.deviceName;
 
-
+	handle->system.colorImageFormat = selectColorImageFormat(handle);
+	handle->system.depthImageFormat = selectDepthImageFormat(handle);
+	handle->system.depthImageFormatHasStencilComponent = hasStencilComponent(handle->system.depthImageFormat);
 	freeSwapchainSupportDetails(swapchainSupport);
 }
 

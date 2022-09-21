@@ -1,8 +1,5 @@
 #pragma once
 
-DEFINE_HANDLE(GraphicsPipeline);
-DEFINE_HANDLE(CompositeShader);
-
 //enviroment functions
 uint32_t engineGetDisplayWidth(EngineHandle handle);
 uint32_t engineGetDisplayHeight(EngineHandle handle);
@@ -18,9 +15,8 @@ uint32_t engineGpuGetMaxImageWidth(EngineHandle handle);
 uint32_t engineGpuGetMaxImageHeight(EngineHandle handle);
 const char* engineGpuGetName(EngineHandle handle);
 
-
-//RenderSurface engineGetApplicationSurface(EngineHandle handle);
-//RenderSurface engineGetApplicationUiSurface(EngineHandle handle);
+ImageFormat engineGetColorImageFormat(EngineHandle handle);
+ImageFormat engineGetDepthImageFormat(EngineHandle handle);
 
 
 //volatile functions

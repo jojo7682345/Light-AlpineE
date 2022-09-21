@@ -83,6 +83,7 @@ typedef enum VsyncEnabled {
 	VSYNC_PREFER_TRIPPLE_BUFFERED_BUT_IF_NOT_AVAILABLE_DISABLE = 6
 }VsyncEnabled;
 
+#include "AlpineImageFormats.h"
 #include "AlpineEngine.h"
 #include "AlpineGraphics.h"
 

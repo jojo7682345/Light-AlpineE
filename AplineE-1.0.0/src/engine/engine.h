@@ -46,7 +46,9 @@ typedef struct EngineProperties {
 
 	//system properties
 	VcyncCapabilityFlags vsyncCapabilities;
-	VkFormat imageFormat;
+	VkFormat colorImageFormat;
+	VkFormat depthImageFormat;
+	bool_t depthImageFormatHasStencilComponent;
 	GpuProperties;
 
 	//settings
@@ -66,6 +68,7 @@ typedef struct EngineProperties {
 
 
 }EngineProperties;
+
 #endif // !__ENGINE__
 
 

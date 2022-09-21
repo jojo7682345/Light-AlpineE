@@ -22,13 +22,6 @@ typedef struct ImageDescription {
 	VkSampleCountFlags sampleCount;
 }ImageDescription;
 
-typedef struct Image_T {
-	VkImage image;
-	VkImageView view;
-	VkFormat format;
-	VkExtent2D extent;
-}Image_T;
-
 typedef struct ImageStack_T {
 	uint32_t imageCount;
 	
@@ -63,4 +56,43 @@ typedef struct Image_T {
 	VkImageView view;
 	VkFormat format;
 	VkExtent2D extent;
-};
+}Image_T;
+
+typedef struct RenderModule_T {
+	EngineHandle handle;
+	RenderModuleType type;
+
+
+
+}RenderModule_T;
+
+typedef struct Renderer_T {
+	EngineHandle handle;
+
+	VkExtent2D size;
+
+	uint32_t impliedImageCount;
+	Image_T* impliedImages;
+	Image* impliedImageRefs;
+
+	uint32_t imageCount;
+	Image_T* images;
+
+	uint32_t depthImageCount;
+	Image_T* depthImages;
+
+	//uint32_t imageResourceCount;
+	//ImageRef* imageResources;
+
+	VkDeviceMemory imageMemory;
+
+	uint32_t renderModuleCount;
+	RenderModule renderModules;
+
+	uint32_t indirectImageBarrierCount;
+	VkImageMemoryBarrier indirectImageBarriers;
+
+	VkRenderPass renderPass;
+	VkFramebuffer framebuffer;
+
+}Renderer_T;

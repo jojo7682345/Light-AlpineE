@@ -8,4 +8,6 @@ VkImageUsageFlags translateImageUsage(ImageUsageFlags imageUsage);
 
 VkSampleCountFlags translateSampleCount(ImageSampleCount sampleCount);
 
-VkFormat tanslateImageFormat(ImageFormat format);
+VkFormat translateImageFormat(ImageFormat format);
+
+VkAccessFlags translateAccessFlags(RenderModuleAccessFlags access);

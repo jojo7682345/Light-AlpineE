@@ -3,6 +3,10 @@
 
 #include <stdio.h>
 
+bool_t hasStencilComponent(VkFormat format) {
+	return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
+}
+
 VkImageView createImageView(EngineHandle handle, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) {
 	VkImageViewCreateInfo viewInfo = { 0 };
 	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -39,7 +43,7 @@ void createImages(EngineHandle handle, uint32_t imageCount, ImageCreateInfo* inf
 	
 	VkMemoryRequirements memoryRequirements = { 0 };
 
-	VkDeviceSize* imageOffsets = (VkDeviceSize*)fsAllocate(sizeof(VkDeviceSize) * (imageCount+1));
+	VkDeviceSize* imageOffsets = (VkDeviceSize*)fsAllocate(sizeof(VkDeviceSize) * (imageCount+1U));
 
 	for (uint32_t i = 0; i < imageCount; i++) {
 	
@@ -175,10 +179,6 @@ void endSingleTimeCommands(EngineHandle handle, VkCommandBuffer commandBuffer) {
 	vkQueueWaitIdle(GRAPHICS_QUEUE(handle));
 
 	vkFreeCommandBuffers(DEVICE(handle), COMMAND_POOL(handle), 1, &commandBuffer);
-}
-
-bool_t hasStencilComponent(VkFormat format) {
-	return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 }
 
 void transitionImageLayout(EngineHandle handle, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
