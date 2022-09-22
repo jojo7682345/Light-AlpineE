@@ -272,12 +272,15 @@ void rendererCreate(EngineHandle handle, RendererCreateInfo info, Renderer* pRen
 			attachment->samples = sampleCount;
 			dataTableSetElement(attachmentIndex, 0, &imageResource.image, &imageCreationTable);
 
-			(*(imageResource.image)) = renderer->images + i;
-			(*(imageResource.image))->format = format;
-			(*(imageResource.image))->extent = extent;
+			Image image = renderer->images + i;
+			image->extent = extent;
+			image->format = format;
+			image->image = VK_NULL_HANDLE;
+			
+			*imageResource.image = image;
 
 			ImageCreateInfo createInfo = { 0 };
-			createInfo.image = &((*imageResource.image)->image);
+			createInfo.image = &(image->image);
 			createInfo.format = format;
 			createInfo.samples = sampleCount;
 			createInfo.width = imageWidth;

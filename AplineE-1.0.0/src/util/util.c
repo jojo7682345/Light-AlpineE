@@ -61,8 +61,8 @@ void createImages(EngineHandle handle, uint32_t imageCount, ImageCreateInfo* inf
 		imageInfo.usage = info[i].usage;
 		imageInfo.samples = info[i].samples;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		VkCheck(vkCreateImage(DEVICE(handle), &imageInfo, nullptr, info[i].image));
-		
+		VkCheck(vkCreateImage(DEVICE(handle), &imageInfo, nullptr, (info[i].image)));
+
 		VkMemoryRequirements memRequirements;
 		vkGetImageMemoryRequirements(DEVICE(handle), *(info[i].image), &memRequirements);
 
