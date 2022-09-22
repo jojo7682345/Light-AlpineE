@@ -49,113 +49,50 @@ void imagePoolDestroy(ImagePool pool);
 
 #pragma endregion
 
-DEFINE_HANDLE(Image);
-typedef Image* ImageRef;
+DEFINE_HANDLE(ImageHandle);
 
-void imageAllocateHandle(ImageRef ref);
+typedef enum ImageType {
+	IMAGE_TYPE_DEPTH,
+	IMAGE_TYPE_COLOR,
+}ImageType;
 
-typedef enum ShaderImageState {
-	SHADER_IMAGE_STATE_READ_ONLY,
-	SHADER_IMAGE_STATE_STORAGE
-}ShaderImageState;
+typedef struct ImageAttachment {
+	ImageFormat format;
+	ImageHandle* imageHandle;
+	ImageType type;
+}ImageAttachment;
 
-typedef struct ShaderImageTrack {
-	uint32_t imageCount;
-	ImageRef* images;
-	uint32_t moduleCount;
-	ShaderImageState* imageStates;
-}ShaderImageTrack;
+typedef struct ImageAttachmentRef {
+	uint32_t attachment;
+}ImageAttachmentRef;
 
-typedef enum ImageAccessType {
-	IMAGE_ACCESS_TYPE_UNDEFINED,
-	IMAGE_ACCESS_TYPE_SHADER_IMAGE_TRACK,
-	IMAGE_ACCESS_TYPE_RENDER_INPUT,
-	IMAGE_ACCESS_TYPE_RENDER_OUTPUT,
-}ImageAccessType;
-
-typedef struct ImageResourceDescription {
-	ImageRef image;
-	ImageAccessType initialAccessType;
-	ImageAccessType finalAccessType;
-
-}ImageResourceDescription;
-typedef struct ImageDepthResourceDescription {
-	ImageRef image;
-	ImageAccessType initialAccessType;
-	ImageAccessType finalAccessType;
-	ImageSampleCount sampleCount;
-}ImageDepthResourceDescription;
-
-DEFINE_HANDLE(RenderModule);
-
-typedef enum RenderModuleType {
-	RENDER_MODULE_TYPE_RENDER,
-	RENDER_MODULE_TYPE_POST_PROCESS
-}RenderModuleType;
+#define ATTACHMENT_UNUSED ((uint32_t)-1)
 
 typedef struct RenderModuleDescription {
+	uint32_t colorAttachmentCount;
+	ImageAttachmentRef* colorAttachments;
 
-	RenderModule* handle;
-	RenderModuleType type;
+	uint32_t inputAttachmentCount;
+	ImageAttachmentRef* inputAttachments;
 
-	uint32_t outputImageCount;
-	ImageRef* outputImages;
+	uint32_t shaderStoreAttachmentCount;
+	ImageAttachmentRef* shaderStoreAttachments;
+	
+	uint32_t shaderSampleAttachmentCount;
+	ImageAttachmentRef* shaderSampleAttachments;
 
-	uint32_t inputImageCount;
-	ImageRef* inputImages;
+	uint32_t depthAttachment;
 
-	uint32_t preserveImageCount;
-	ImageRef* preserveImages;
-
-	ImageRef depthImage;
 	ImageSampleCount sampleCount;
+};
 
-}RenderModuleDescription;
+typedef struct Renderer {
+	uint32_t width;
+	uint32_t height;
 
-typedef enum RenderModuleStage {
-	RENDER_MODULE_STAGE_FRAGMENT_OUTPUT,
-	RENDER_MODULE_STAGE_FRAGMENT_INPUT,
-	RENDER_MODULE_STAGE_DEPTH_OUTPUT,
-	RENDER_MODULE_STAGE_DEPTH_INPUT,
-	RENDER_MODULE_STAGE_VERTEX_INPUT,
-	RENDER_MODULE_STAGE_VERTEX_OUTPUT,
-}RenderModuleStage;
-
-#define RENDERER_OUTPUT ((RenderModule*)0x0001)
-#define RENDERER_INPUT ((RenderModule*)0x0002)
-
-typedef struct RenderModuleDependency {
-	RenderModule* src;
-	RenderModule* dst;
-	RenderModuleStage srcStage;
-	RenderModuleStage dstStage;
-	RenderModuleAccessFlags srcAccess;
-	RenderModuleAccessFlags dstAccess;
-}RenderModuleDependency;
-
-DEFINE_HANDLE(Renderer);
-
-typedef struct RendererCreateInfo {
-
-	uint32_t width; //0 for window width;
-	uint32_t height; //0 for window height;
-
-	uint32_t imageResourceCount;
-	ImageResourceDescription* imageResources;
-
-	uint32_t depthImageResourceCount;
-	ImageDepthResourceDescription* depthImageResources;
-
-	uint32_t renderModuleCount;
-	RenderModuleDescription* renderModules;
-
-	uint32_t dependencyCount;
-	RenderModuleDependency* dependencies;
-
-}RendererCreateInfo;
-
-void rendererCreate(EngineHandle handle, RendererCreateInfo info, Renderer* renderer);
-void rendererDestroy(Renderer renderer);
+	uint32_t attachmentCount;
+	ImageAttachment* attachments;
+};
 
 
 void buildGraphics(EngineHandle handle);

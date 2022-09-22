@@ -31,134 +31,60 @@ EngineSettings getEngineSettings() {
 	return settings;
 }
 
-Image albedo;
-Image normal;
-Image position;
-Image specular;
-
-Image deferedRender;
-Image transparentRender;
-
-Image depthImage;
-
-RenderModule geometryPass;
-RenderModule deferedPass;
-RenderModule transparentPass;
-
-Renderer deferedRenderer;
-
 void buildGraphics(EngineHandle handle) {
 	
-	ImageRef geometryPassOutput[] = {
-		&albedo,
-		&normal,
-		&position,
-		&specular
-	};
-	RenderModuleDescription geometryPassDescription{};
-	geometryPassDescription.handle = &geometryPass;
-	geometryPassDescription.type = RENDER_MODULE_TYPE_RENDER;
-	geometryPassDescription.depthImage = &depthImage;
-	geometryPassDescription.outputImageCount = sizeof(geometryPassOutput) / sizeof(ImageRef);
-	geometryPassDescription.outputImages = geometryPassOutput;
+	ImageAttachment deferedAttachments[] = {
+		{IMAGE_FORMAT_B8G8R8A8_SRGB}, // Albedo
+		{IMAGE_FORMAT_B8G8R8A8_SRGB}, // Normal
+		{IMAGE_FORMAT_B8G8R8A8_SRGB}, // Position
+		{IMAGE_FORMAT_R8_SRGB}, //Specular
+		
+		{IMAGE_FORMAT_R8_SRGB}, //Depth
 
-	ImageRef deferedPassOutput[] = {
-		&deferedRender
-	};
-	ImageRef deferedPassPreserve[] = {
-		&depthImage
-	};
-	RenderModuleDescription deferedPassDescription{};
-	deferedPassDescription.handle = &deferedPass;
-	deferedPassDescription.type = RENDER_MODULE_TYPE_POST_PROCESS;
-	deferedPassDescription.inputImageCount = geometryPassDescription.outputImageCount;
-	deferedPassDescription.inputImages = geometryPassOutput;
-	deferedPassDescription.preserveImageCount = sizeof(deferedPassPreserve) / sizeof(ImageRef);
-	deferedPassDescription.preserveImages = deferedPassPreserve;
-	deferedPassDescription.outputImageCount = sizeof(deferedPassOutput) / sizeof(ImageRef);
-	deferedPassDescription.outputImages = deferedPassOutput;
-
-	ImageRef transparentPassOutput[] = {
-		&transparentRender
-	};
-	RenderModuleDescription transparentPassDescription{};
-	transparentPassDescription.handle = &transparentPass;
-	transparentPassDescription.type = RENDER_MODULE_TYPE_RENDER;
-	transparentPassDescription.inputImageCount = deferedPassDescription.outputImageCount;
-	transparentPassDescription.inputImages = deferedPassOutput;
-	transparentPassDescription.outputImageCount = sizeof(transparentPassOutput) / sizeof(ImageRef);
-	transparentPassDescription.outputImages = transparentPassOutput;
-
-	RenderModuleDependency geometryDeferedDep{};
-	geometryDeferedDep.src = &geometryPass;
-	geometryDeferedDep.srcStage = RENDER_MODULE_STAGE_FRAGMENT_OUTPUT;
-	geometryDeferedDep.dst = &deferedPass;
-	geometryDeferedDep.dstStage = RENDER_MODULE_STAGE_FRAGMENT_INPUT;
-
-	RenderModuleDependency deferedTransparentDep{};
-	deferedTransparentDep.src = &deferedPass;
-	deferedTransparentDep.srcStage = RENDER_MODULE_STAGE_FRAGMENT_OUTPUT;
-	deferedTransparentDep.dst = &transparentPass;
-	deferedTransparentDep.dstStage = RENDER_MODULE_STAGE_FRAGMENT_INPUT;
-
-	RenderModuleDependency geometryTransparentDep{};
-	deferedTransparentDep.src = &geometryPass;
-	deferedTransparentDep.srcStage = RENDER_MODULE_STAGE_DEPTH_OUTPUT;
-	deferedTransparentDep.dst = &transparentPass;
-	deferedTransparentDep.dstStage = RENDER_MODULE_STAGE_DEPTH_INPUT;
-
-	RenderModuleDependency outputDependency{};
-	outputDependency.src = &transparentPass;
-	outputDependency.srcStage = RENDER_MODULE_STAGE_FRAGMENT_OUTPUT;
-	outputDependency.dst = RENDERER_OUTPUT;
-
-	RenderModuleDescription renderModules[] = {
-		geometryPassDescription,
-		deferedPassDescription,
-		transparentPassDescription
+		{IMAGE_FORMAT_B8G8R8A8_SRGB}, // Deferedpass output
+		{IMAGE_FORMAT_B8G8R8A8_SRGB}, // TransparentPass output
 	};
 
-	RenderModuleDependency dependencies[] = {
-		geometryDeferedDep,
-		deferedTransparentDep,
-		geometryTransparentDep,
-		outputDependency
+	ImageAttachmentRef mainGeometryImages[] = {
+		{0},
+		{1},
+		{2},
+		{3}
 	};
+	RenderModuleDescription geometrypass{};
+	geometrypass.colorAttachmentCount = 4;
+	geometrypass.colorAttachments = mainGeometryImages;
+	geometrypass.depthAttachment = 4;
+	geometrypass.sampleCount = IMAGE_SAMPLE_COUNT_1;
 
-	ImageResourceDescription images[] = {
-		{&albedo,IMAGE_ACCESS_TYPE_UNDEFINED,IMAGE_ACCESS_TYPE_UNDEFINED},
-		{&normal,IMAGE_ACCESS_TYPE_UNDEFINED,IMAGE_ACCESS_TYPE_UNDEFINED},
-		{&position,IMAGE_ACCESS_TYPE_UNDEFINED,IMAGE_ACCESS_TYPE_UNDEFINED},
-		{&specular,IMAGE_ACCESS_TYPE_UNDEFINED,IMAGE_ACCESS_TYPE_UNDEFINED},
-		{&deferedRender,IMAGE_ACCESS_TYPE_UNDEFINED,IMAGE_ACCESS_TYPE_UNDEFINED},
-		{&transparentRender,IMAGE_ACCESS_TYPE_UNDEFINED,IMAGE_ACCESS_TYPE_RENDER_OUTPUT}
+	ImageAttachmentRef deferedPassImages[] = {
+		{5}
 	};
+	RenderModuleDescription deferedPass{};
+	deferedPass.colorAttachmentCount = 1;
+	deferedPass.colorAttachments = deferedPassImages;
+	deferedPass.depthAttachment = ATTACHMENT_UNUSED;
+	deferedPass.sampleCount = IMAGE_SAMPLE_COUNT_1;
 
-	ImageDepthResourceDescription depthImages[] = {
-		{&depthImage,IMAGE_ACCESS_TYPE_UNDEFINED,IMAGE_ACCESS_TYPE_UNDEFINED, IMAGE_SAMPLE_COUNT_1}
+	ImageAttachmentRef transparentPassImages[] = {
+		{6}
 	};
+	RenderModuleDescription transparentPass{};
+	transparentPass.colorAttachmentCount = 1;
+	transparentPass.colorAttachments = transparentPassImages;
+	transparentPass.depthAttachment = 4;
+	transparentPass.sampleCount = IMAGE_SAMPLE_COUNT_1;
 
-	RendererCreateInfo deferedRendererInfo{};
-	deferedRendererInfo.width = 0;
-	deferedRendererInfo.height = 0;
-	deferedRendererInfo.imageResourceCount = sizeof(images) / sizeof(ImageResourceDescription);
-	deferedRendererInfo.imageResources = images;
-	deferedRendererInfo.depthImageResourceCount = sizeof(depthImages) / sizeof(ImageResourceDescription);
-	deferedRendererInfo.depthImageResources = depthImages;
 
-	deferedRendererInfo.renderModuleCount = sizeof(renderModules) / sizeof(RenderModuleDescription);
-	deferedRendererInfo.renderModules = renderModules;
-	deferedRendererInfo.dependencyCount = sizeof(dependencies) / sizeof(RenderModuleDependency);
-	deferedRendererInfo.dependencies = dependencies;
 
-	rendererCreate(handle, deferedRendererInfo, &deferedRenderer);
+
 
 }
 
 
 void destroyGraphics() {
 
-	rendererDestroy(deferedRenderer);
+
 
 }
 
