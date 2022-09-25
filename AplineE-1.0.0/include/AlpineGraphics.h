@@ -49,63 +49,7 @@ void imagePoolDestroy(ImagePool pool);
 
 #pragma endregion
 
-DEFINE_HANDLE(ImageHandle);
 
-typedef enum ImageType {
-	IMAGE_TYPE_DEPTH,
-	IMAGE_TYPE_COLOR,
-}ImageType;
-
-typedef struct ImageAttachment {
-	ImageFormat format;
-	ImageHandle* imageHandle;
-	ImageType type;
-}ImageAttachment;
-
-typedef struct ImageAttachmentRef {
-	uint32_t attachment;
-}ImageAttachmentRef;
-
-#define ATTACHMENT_UNUSED ((uint32_t)-1)
-
-DEFINE_HANDLE(RenderModule);
-
-typedef struct RenderModuleDescription {
-	RenderModule* handle;
-
-	uint32_t colorAttachmentCount;
-	ImageAttachmentRef* colorAttachments;
-
-	uint32_t inputAttachmentCount;
-	ImageAttachmentRef* inputAttachments;
-
-	uint32_t shaderStoreAttachmentCount;
-	ImageAttachmentRef* shaderStoreAttachments;
-	
-	uint32_t shaderSampleAttachmentCount;
-	ImageAttachmentRef* shaderSampleAttachments;
-
-	uint32_t depthAttachment;
-
-	ImageSampleCount sampleCount;
-};
-
-typedef enum RenderModuleOutput {
-	FRAGMENT_OUTPUT = 0xff000000U - 0x00000000U,
-	VERTEX_OUTPUT = 0xff000000U - 0x01000000U
-};
-typedef enum RenderModuleInput {
-	FRAGMENT_INPUT = 0x00ff0000U - 0x00000000U,
-	VERTEX_INPUT = 0x00ff0000U - 0x00010000U
-}RenderModuleInput;
-
-typedef struct Renderer {
-	uint32_t width;
-	uint32_t height;
-
-	uint32_t attachmentCount;
-	ImageAttachment* attachments;
-};
 
 
 void buildGraphics(EngineHandle handle);
