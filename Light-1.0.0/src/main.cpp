@@ -31,19 +31,13 @@ EngineSettings getEngineSettings() {
 	return settings;
 }
 
-void buildGraphics(EngineHandle handle) {
-	
-	ImageAttachment deferedAttachments[] = {
-		{IMAGE_FORMAT_B8G8R8A8_SRGB}, // Albedo
-		{IMAGE_FORMAT_B8G8R8A8_SRGB}, // Normal
-		{IMAGE_FORMAT_B8G8R8A8_SRGB}, // Position
-		{IMAGE_FORMAT_R8_SRGB}, //Specular
-		
-		{IMAGE_FORMAT_R8_SRGB}, //Depth
+RenderModule geometryPass;
+RenderModule deferedPass;
+RenderModule transparentPass;
 
-		{IMAGE_FORMAT_B8G8R8A8_SRGB}, // Deferedpass output
-		{IMAGE_FORMAT_B8G8R8A8_SRGB}, // TransparentPass output
-	};
+void buildGraphics(EngineHandle handle) {
+
+	
 
 	ImageAttachmentRef mainGeometryImages[] = {
 		{0},
@@ -51,31 +45,62 @@ void buildGraphics(EngineHandle handle) {
 		{2},
 		{3}
 	};
-	RenderModuleDescription geometrypass{};
-	geometrypass.colorAttachmentCount = 4;
-	geometrypass.colorAttachments = mainGeometryImages;
-	geometrypass.depthAttachment = 4;
-	geometrypass.sampleCount = IMAGE_SAMPLE_COUNT_1;
+	RenderModuleDescription geometrypassDescription{};
+	geometrypassDescription.handle = &geometryPass;
+	geometrypassDescription.colorAttachmentCount = 4;
+	geometrypassDescription.colorAttachments = mainGeometryImages;
+	geometrypassDescription.depthAttachment = 4;
+	geometrypassDescription.sampleCount = IMAGE_SAMPLE_COUNT_1;
 
 	ImageAttachmentRef deferedPassImages[] = {
 		{5}
 	};
-	RenderModuleDescription deferedPass{};
-	deferedPass.colorAttachmentCount = 1;
-	deferedPass.colorAttachments = deferedPassImages;
-	deferedPass.depthAttachment = ATTACHMENT_UNUSED;
-	deferedPass.sampleCount = IMAGE_SAMPLE_COUNT_1;
+	RenderModuleDescription deferedPassDescription{};
+	deferedPassDescription.handle = &deferedPass;
+	deferedPassDescription.colorAttachmentCount = 1;
+	deferedPassDescription.colorAttachments = deferedPassImages;
+	deferedPassDescription.inputAttachmentCount = 4;
+	deferedPassDescription.inputAttachments = mainGeometryImages;
+	deferedPassDescription.depthAttachment = ATTACHMENT_UNUSED;
+	deferedPassDescription.sampleCount = IMAGE_SAMPLE_COUNT_1;
 
 	ImageAttachmentRef transparentPassImages[] = {
 		{6}
 	};
-	RenderModuleDescription transparentPass{};
-	transparentPass.colorAttachmentCount = 1;
-	transparentPass.colorAttachments = transparentPassImages;
-	transparentPass.depthAttachment = 4;
-	transparentPass.sampleCount = IMAGE_SAMPLE_COUNT_1;
+	RenderModuleDescription transparentPassDescription{};
+	transparentPassDescription.handle = &transparentPass;
+	transparentPassDescription.colorAttachmentCount = 1;
+	transparentPassDescription.colorAttachments = transparentPassImages;
+	transparentPassDescription.depthAttachment = 4;
+	transparentPassDescription.sampleCount = IMAGE_SAMPLE_COUNT_1;
 
+	RenderModuleDescription renderModules[] = {
+		geometrypassDescription,
+		deferedPassDescription,
+		transparentPassDescription,
+	};
+	
+	ImageAttachment deferedAttachments[] = {
+		{IMAGE_FORMAT_B8G8R8A8_SRGB}, // Albedo
+		{IMAGE_FORMAT_B8G8R8A8_SRGB}, // Normal
+		{IMAGE_FORMAT_B8G8R8A8_SRGB}, // Position
+		{IMAGE_FORMAT_R8_SRGB}, //Specular
 
+		{IMAGE_FORMAT_R8_SRGB}, //Depth
+
+		{IMAGE_FORMAT_B8G8R8A8_SRGB}, // Deferedpass output
+		{IMAGE_FORMAT_B8G8R8A8_SRGB}, // TransparentPass output
+	};
+
+	uint32_t deferedChain[] = {
+		0,
+		1,
+		2, 
+	};
+
+	uint32_t* rendererChains[] = {
+		deferedChain
+	};
 
 
 

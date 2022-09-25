@@ -68,7 +68,11 @@ typedef struct ImageAttachmentRef {
 
 #define ATTACHMENT_UNUSED ((uint32_t)-1)
 
+DEFINE_HANDLE(RenderModule);
+
 typedef struct RenderModuleDescription {
+	RenderModule* handle;
+
 	uint32_t colorAttachmentCount;
 	ImageAttachmentRef* colorAttachments;
 
@@ -85,6 +89,15 @@ typedef struct RenderModuleDescription {
 
 	ImageSampleCount sampleCount;
 };
+
+typedef enum RenderModuleOutput {
+	FRAGMENT_OUTPUT = 0xff000000U - 0x00000000U,
+	VERTEX_OUTPUT = 0xff000000U - 0x01000000U
+};
+typedef enum RenderModuleInput {
+	FRAGMENT_INPUT = 0x00ff0000U - 0x00000000U,
+	VERTEX_INPUT = 0x00ff0000U - 0x00010000U
+}RenderModuleInput;
 
 typedef struct Renderer {
 	uint32_t width;
