@@ -29,11 +29,47 @@ EngineSettings getEngineSettings() {
 	return settings;
 }
 
+
+RenderModule renderModule;
+Renderer renderer;
+
 void buildGraphics(EngineHandle handle) {
 
-	
 
-	
+
+
+
+}
+
+Scene mainScene;
+
+
+COMPONENT(
+	HealthComponent,
+	float health;
+	float maxHealth;
+);
+
+COMPONENT(
+	TestComponent,
+)
+
+
+
+void buildComponentTypes(EngineHandle handle) {
+
+	engineRegisterComponentType(handle, HealthComponent);
+	engineRegisterComponentType(handle, TestComponent);
+
+}
+
+void buildScenes(EngineHandle handle) {
+	SceneCreateInfo info{};
+	sceneCreate(handle, info, &mainScene);
+
+
+
+
 
 }
 

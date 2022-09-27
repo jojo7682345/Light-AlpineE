@@ -93,6 +93,9 @@
     <ClInclude Include="src\util\translate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\AlpineComponents.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\core.c">

@@ -1,6 +1,8 @@
 #include "engine.h"
 #include "../core/core.h"
 #include <core/swapchain/swapchain.h>
+
+#pragma region system stuff
 uint32_t engineGetFps(EngineHandle handle) {
 	return handle->system.fps;
 }
@@ -15,6 +17,10 @@ uint32_t engineWindowGetHeight(EngineHandle handle) {
 
 bool_t engineWindowGetFullscreen(EngineHandle handle) {
 	return handle->system.windowFullscreen;
+}
+
+void engineRegisterComponentType_(EngineHandle handle, uint32_t typeID, size_t size) {
+
 }
 
 uint32_t getEngineVersion() {
@@ -76,4 +82,18 @@ ImageFormat engineGetColorImageFormat(EngineHandle handle) {
 ImageFormat engineGetDepthImageFormat(EngineHandle handle) {
 	return handle->system.depthImageFormat;
 }
+
+#pragma endregion
+
+void sceneCreate(EngineHandle handle, SceneCreateInfo info, Scene* pScene) {
+	Scene scene = fsAllocate(sizeof(Scene_T));
+	*pScene = scene;
+
+	_DynamicArray arr = { .dataSize = sizeof(_DynamicArray) };
+	memcpy(&arr, &scene->componentTypeGroups, sizeof(_DynamicArray));
+
+
+}
+
+
 

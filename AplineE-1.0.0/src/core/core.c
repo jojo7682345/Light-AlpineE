@@ -168,8 +168,13 @@ void mainLoop(EngineHandle handle) {
 
 int main() {
 
-	EngineHandle_T handleData = { 0	};
+	EngineHandle_T handleData = { 
+		.componentTypes = {.dataSize=sizeof(ComponentTypeDesctription)}
+	};
+	
+
 	EngineHandle handle = &handleData;
+	buildComponentTypes(handle);
 
 	EngineSettings settings = getEngineSettings();
 	buildEngine(settings, handle);

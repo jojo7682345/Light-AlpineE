@@ -50,7 +50,9 @@ void imagePoolDestroy(ImagePool pool);
 #pragma endregion
 
 
-
+DEFINE_HANDLE(RenderModule);
+void renderModuleAttachScene(RenderModule renderModule, Scene scene);
+DEFINE_HANDLE(Renderer);
 
 void buildGraphics(EngineHandle handle);
 void destroyGraphics();

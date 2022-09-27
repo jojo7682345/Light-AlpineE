@@ -5,11 +5,9 @@
 
 #include <vulkan/vulkan.h>
 #include <AlpineCore.h>
+#include <MemoryUtilities/DynamicArray.h>
 
-
-DECL_HANDLE(GraphicsPipeline,
-			int a;
-);
+#pragma region system stuff
 
 typedef struct FrameRateLimit {
 	VkBool32 enabled;
@@ -68,6 +66,20 @@ typedef struct EngineProperties {
 
 
 }EngineProperties;
+
+#pragma endregion
+
+typedef struct ComponentTypeDesctription {
+	uint32_t typeID;
+	size_t size;
+}ComponentTypeDesctription;
+
+
+typedef struct Scene_T {
+
+	_DynamicArray componentTypeGroups;
+
+}Scene_T;
 
 #endif // !__ENGINE__
 

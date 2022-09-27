@@ -103,6 +103,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\AlpineComponents.h" />
     <ClInclude Include="include\AlpineCore.h" />
     <ClInclude Include="include\AlpineEngine.h" />
     <ClInclude Include="include\AlpineGraphics.h" />

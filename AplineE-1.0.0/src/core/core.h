@@ -79,7 +79,6 @@ typedef struct DeviceQueue {
 } DeviceQueue;
 
 typedef struct EngineHandle_T {
-	//EngineProperties properties;
 	GLFWwindow* window;
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
@@ -97,6 +96,8 @@ typedef struct EngineHandle_T {
 	RenderCommand command;
 	Synchronisation synchronisation;
 
+
+	_DynamicArray componentTypes;
 
 	//new shit
 	EngineProperties system;

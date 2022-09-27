@@ -86,6 +86,7 @@ typedef enum VsyncEnabled {
 #include "AlpineImageFormats.h"
 #include "AlpineEngine.h"
 #include "AlpineGraphics.h"
+#include "AlpineComponents.h"
 
 typedef struct EngineSettings {
 	//metadata
@@ -126,7 +127,6 @@ AeResult AE_API_CALL loadShader(const char* shaderFile, ShaderInfo info, ShaderR
 uint32_t AE_API_CALL getEngineVersion();
 
 int main();
-
 
 
 #pragma region end_of_header
