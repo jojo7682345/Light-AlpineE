@@ -123,12 +123,8 @@
     <ClInclude Include="src\core\window\surface\surface.h" />
     <ClInclude Include="src\core\window\window.h" />
     <ClInclude Include="src\engine\engine.h" />
-    <ClInclude Include="src\engine\rendering\renderTree\renderTree.h" />
-    <ClInclude Include="src\engine\rendering\surface\renderSurface.h" />
-    <ClInclude Include="src\engine\rendering\target\renderTarget.h" />
     <ClInclude Include="src\util\math.h" />
     <ClInclude Include="src\util\translate.h" />
-    <ClInclude Include="src\util\tree.h" />
     <ClInclude Include="src\util\util.h" />
   </ItemGroup>
   <ItemGroup>
@@ -146,19 +142,12 @@
     <ClCompile Include="src\core\window\window.c" />
     <ClCompile Include="src\core\debug\debug.c" />
     <ClCompile Include="src\engine\engine.c" />
-    <ClCompile Include="src\engine\rendering\renderTree\renderTree.c" />
-    <ClCompile Include="src\engine\rendering\surface\renderSurface.c" />
-    <ClCompile Include="src\engine\rendering\target\renderTarget.c" />
     <ClCompile Include="src\util\math.c" />
     <ClCompile Include="src\util\translate.c" />
-    <ClCompile Include="src\util\tree.c" />
     <ClCompile Include="src\util\util.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="lib\glslc.exe" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="src\scratchpad.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

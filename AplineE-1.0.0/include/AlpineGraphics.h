@@ -51,7 +51,6 @@ void imagePoolDestroy(ImagePool pool);
 
 
 DEFINE_HANDLE(RenderModule);
-void renderModuleAttachScene(RenderModule renderModule, Scene scene);
 DEFINE_HANDLE(Renderer);
 
 void buildGraphics(EngineHandle handle);

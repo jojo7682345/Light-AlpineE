@@ -101,6 +101,7 @@
     <None Include="assets\shaders\vert.spv" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\components.h" />
     <ClInclude Include="src\handles.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

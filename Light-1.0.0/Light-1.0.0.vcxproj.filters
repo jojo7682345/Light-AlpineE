@@ -29,5 +29,8 @@
     <ClInclude Include="src\handles.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\components.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

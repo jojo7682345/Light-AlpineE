@@ -6,6 +6,7 @@
 #include <vulkan/vulkan.h>
 #include <AlpineCore.h>
 #include <MemoryUtilities/DynamicArray.h>
+#include <AlpineEngine.h>
 
 #pragma region system stuff
 
@@ -74,12 +75,31 @@ typedef struct ComponentTypeDesctription {
 	size_t size;
 }ComponentTypeDesctription;
 
+void registerEngineDefaultComponentTypes(EngineHandle handle);
 
 typedef struct Scene_T {
+	EngineHandle handle;
 
-	_DynamicArray componentTypeGroups;
+	_DynamicArray* componentTypeGroups;
 
+	_DynamicArray entities;
+	size_t entity;
 }Scene_T;
+
+typedef struct Entity_T {
+	Scene scene;
+	uint32_t ID;
+	_DynamicArray components;
+} Entity_T;
+
+typedef struct EntityPrimitive_T {
+
+	uint32_t* componentCount;
+	uint32_t* componentTypes;
+	void* componentData;
+
+}EntityPrimitive_T;
+
 
 #endif // !__ENGINE__
 

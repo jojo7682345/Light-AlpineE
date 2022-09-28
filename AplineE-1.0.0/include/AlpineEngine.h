@@ -1,4 +1,5 @@
 #pragma once
+#include "dataTypes.h"
 
 //enviroment functions
 uint32_t engineGetDisplayWidth(EngineHandle handle);
@@ -40,30 +41,39 @@ DEFINE_HANDLE(Scene);
 void engineRegisterComponentType_(EngineHandle handle, uint32_t typeID, size_t size);
 #define engineRegisterComponentType(handle, type) engineRegisterComponentType_(handle,type##TypeID,type##TypeSize)
 
+size_t engineGetComponentSize(EngineHandle handle, uint32_t componentTypeID);
+uint32_t enigneGetComponentTypeIndex(EngineHandle handle, uint32_t componentTypeID);
+
+
 typedef struct ComponentRef {
 	uint32_t componentTypeID;
 	uint32_t component;
+	uint32_t componentID;
 }ComponentRef;
 
-typedef struct Entity {
-	uint32_t ID;
-	uint32_t componentCount;
-	ComponentRef* components;
-} Entity;
 
 typedef struct SceneCreateInfo {
 
 	int a;
 }SceneCreateInfo;
 
-
+DEFINE_HANDLE(Entity);
+DEFINE_HANDLE(EntityPrimitive);
 
 void sceneCreate(EngineHandle handle, SceneCreateInfo info, Scene* scene);
+void sceneDestroy(Scene scene);
 
+void sceneCreateEntity(Entity* entity, Scene scene);
+void sceneDestroyEntity(Entity entity, Scene scene);
+uint32_t sceneGetEntityCount(Scene scene);
+
+
+EntityPrimitive createEntityPrimitive();
+void destroyEntityPrimitive(EntityPrimitive primitive);
+
+uint32_t entityAddComponent(Entity entity, uint32_t componentTypeID, void* data);
+bool_t entityHasComponent(Entity entity, uint32_t componentTypeID);
+void entityRemoveComponent(Entity entity, uint32_t componetTypeID);
 
 void buildComponentTypes(EngineHandle handle);
 void buildScenes(EngineHandle handle);
-
-
-
-

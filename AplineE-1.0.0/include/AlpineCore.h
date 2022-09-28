@@ -27,8 +27,7 @@ extern "C" {
 #pragma endregion 
 
 
-DEFINE_HANDLE(EngineHandle)
-DEFINE_HANDLE(ShaderResource)
+DEFINE_HANDLE(EngineHandle);
 
 typedef uint32_t bool_t;
 #define True 1
@@ -123,7 +122,6 @@ typedef struct ShaderInfo {
 }ShaderInfo;
 
 EngineSettings AE_API_CALL getEngineSettings();
-AeResult AE_API_CALL loadShader(const char* shaderFile, ShaderInfo info, ShaderResource* shader);
 uint32_t AE_API_CALL getEngineVersion();
 
 int main();

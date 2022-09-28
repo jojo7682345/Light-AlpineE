@@ -5,6 +5,7 @@
 #pragma warning(pop)
 
 #include "handles.h"
+#include "components.h"
 
 EngineSettings getEngineSettings() {
 
@@ -29,6 +30,12 @@ EngineSettings getEngineSettings() {
 	return settings;
 }
 
+void buildComponentTypes(EngineHandle handle) {
+
+	engineRegisterComponentType(handle, HealthComponent);
+	engineRegisterComponentType(handle, TestComponent);
+
+}
 
 RenderModule renderModule;
 Renderer renderer;
@@ -44,24 +51,7 @@ void buildGraphics(EngineHandle handle) {
 Scene mainScene;
 
 
-COMPONENT(
-	HealthComponent,
-	float health;
-	float maxHealth;
-);
 
-COMPONENT(
-	TestComponent,
-)
-
-
-
-void buildComponentTypes(EngineHandle handle) {
-
-	engineRegisterComponentType(handle, HealthComponent);
-	engineRegisterComponentType(handle, TestComponent);
-
-}
 
 void buildScenes(EngineHandle handle) {
 	SceneCreateInfo info{};
