@@ -93,7 +93,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\main_test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\frag.spv" />
@@ -102,6 +101,7 @@
     <None Include="assets\shaders\vert.spv" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\components.h" />
     <ClInclude Include="src\handles.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

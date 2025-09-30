@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 #define MU_DEBUG
 #include <MemoryUtilities/MemoryUtilities.h>
+#include <MemoryUtilities/DataGrid.h>
 #include <memory.h>
 #include <stdlib.h>
 #ifndef __CORE_INCLUDED__
@@ -79,7 +80,6 @@ typedef struct DeviceQueue {
 } DeviceQueue;
 
 typedef struct EngineHandle_T {
-	//EngineProperties properties;
 	GLFWwindow* window;
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
@@ -97,6 +97,11 @@ typedef struct EngineHandle_T {
 	RenderCommand command;
 	Synchronisation synchronisation;
 
+	uint32_t componentTypeCount;
+	_DynamicArray componentTypes;
+	_DynamicArray componentTypeMap;
+
+	_DynamicArray scenes;
 
 	//new shit
 	EngineProperties system;

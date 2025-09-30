@@ -69,19 +69,7 @@
     <ClInclude Include="src\util\util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\engine\rendering\target\renderTarget.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\rendering\surface\renderSurface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\AlpineGraphics.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\rendering\renderTree\renderTree.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\util\tree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\core\image\Image.h">
@@ -91,6 +79,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\util\translate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\AlpineComponents.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -137,19 +128,7 @@
     <ClCompile Include="src\util\util.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\engine\rendering\surface\renderSurface.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\engine\engine.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\rendering\target\renderTarget.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\rendering\renderTree\renderTree.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\util\tree.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\core\image\Image.c">
@@ -161,8 +140,5 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="lib\glslc.exe" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="src\scratchpad.txt" />
   </ItemGroup>
 </Project>

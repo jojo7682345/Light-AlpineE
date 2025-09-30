@@ -27,8 +27,7 @@ extern "C" {
 #pragma endregion 
 
 
-DEFINE_HANDLE(EngineHandle)
-DEFINE_HANDLE(ShaderResource)
+DEFINE_HANDLE(EngineHandle);
 
 typedef uint32_t bool_t;
 #define True 1
@@ -83,8 +82,10 @@ typedef enum VsyncEnabled {
 	VSYNC_PREFER_TRIPPLE_BUFFERED_BUT_IF_NOT_AVAILABLE_DISABLE = 6
 }VsyncEnabled;
 
+#include "AlpineImageFormats.h"
 #include "AlpineEngine.h"
 #include "AlpineGraphics.h"
+#include "AlpineComponents.h"
 
 typedef struct EngineSettings {
 	//metadata
@@ -121,11 +122,9 @@ typedef struct ShaderInfo {
 }ShaderInfo;
 
 EngineSettings AE_API_CALL getEngineSettings();
-AeResult AE_API_CALL loadShader(const char* shaderFile, ShaderInfo info, ShaderResource* shader);
 uint32_t AE_API_CALL getEngineVersion();
 
 int main();
-
 
 
 #pragma region end_of_header

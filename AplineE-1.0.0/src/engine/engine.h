@@ -5,11 +5,10 @@
 
 #include <vulkan/vulkan.h>
 #include <AlpineCore.h>
+#include <MemoryUtilities/DynamicArray.h>
+#include <AlpineEngine.h>
 
-
-DECL_HANDLE(GraphicsPipeline,
-			int a;
-);
+#pragma region system stuff
 
 typedef struct FrameRateLimit {
 	VkBool32 enabled;
@@ -46,7 +45,9 @@ typedef struct EngineProperties {
 
 	//system properties
 	VcyncCapabilityFlags vsyncCapabilities;
-	VkFormat imageFormat;
+	VkFormat colorImageFormat;
+	VkFormat depthImageFormat;
+	bool_t depthImageFormatHasStencilComponent;
 	GpuProperties;
 
 	//settings
@@ -66,6 +67,40 @@ typedef struct EngineProperties {
 
 
 }EngineProperties;
+
+#pragma endregion
+
+typedef struct ComponentTypeDesctription {
+	uint32_t typeID;
+	size_t size;
+}ComponentTypeDesctription;
+
+void registerEngineDefaultComponentTypes(EngineHandle handle);
+
+typedef struct Scene_T {
+	EngineHandle handle;
+
+	_DynamicArray* componentTypeGroups;
+
+	_DynamicArray entities;
+	size_t entity;
+}Scene_T;
+
+typedef struct Entity_T {
+	Scene scene;
+	uint32_t ID;
+	_DynamicArray components;
+} Entity_T;
+
+typedef struct EntityPrimitive_T {
+
+	uint32_t* componentCount;
+	uint32_t* componentTypes;
+	void* componentData;
+
+}EntityPrimitive_T;
+
+
 #endif // !__ENGINE__
 
 
